@@ -404,4 +404,4 @@ Dr. B.R. Ambedkar National Institute of Technology, Jalandhar
 
 ---
 
-## ⭐ If you like this project, don't forget to star the repository.
+## ⭐ If you like this project, don't forget to star the com.placementintelligence.repository.
