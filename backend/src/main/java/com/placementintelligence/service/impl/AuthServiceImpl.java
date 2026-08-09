@@ -46,7 +46,7 @@ public class AuthServiceImpl implements AuthService {
             .verified(false)
             .createdAt(Instant.now())
             .updatedAt(Instant.now())
-            .expiresAt(Instant.now().plusSeconds(600))
+            .expiresAt(Instant.now().plusSeconds(1800))
             .build();
 
         otpRepository.save(otpVerification);
