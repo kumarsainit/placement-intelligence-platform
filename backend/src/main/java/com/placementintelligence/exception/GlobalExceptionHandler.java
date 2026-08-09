@@ -1,6 +1,7 @@
 package com.placementintelligence.exception;
 
 import com.placementintelligence.common.response.ApiResponse;
+import com.placementintelligence.common.response.ApiResponseFactory;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -82,5 +83,25 @@ public class GlobalExceptionHandler {
         );
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
+
+    @ExceptionHandler(ResourceAlreadyExistsException.class)
+    public ResponseEntity<ApiResponse<Void>> handleResourceAlreadyExists(
+        ResourceAlreadyExistsException ex,
+        HttpServletRequest request
+    ) {
+
+        ApiResponse<Void> response = new ApiResponse<>(
+            false,
+            HttpStatus.CONFLICT.value(),
+            ex.getMessage(),
+            null,
+            Instant.now(),
+            request.getRequestURI()
+        );
+
+        return ResponseEntity
+            .status(HttpStatus.CONFLICT)
+            .body(response);
     }
 }
