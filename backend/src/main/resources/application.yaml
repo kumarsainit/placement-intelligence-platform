@@ -11,3 +11,7 @@ spring:
 
     jpa:
         open-in-view: false
+
+app:
+    file-storage:
+        resume-directory: uploads/resumes
