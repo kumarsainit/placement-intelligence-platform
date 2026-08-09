@@ -2,8 +2,11 @@ package com.placementintelligence;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import com.placementintelligence.security.JwtProperties;
 
 @SpringBootApplication
+@EnableConfigurationProperties(JwtProperties.class)
 public class BackendApplication {
 
     public static void main(String[] args) {

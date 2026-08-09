@@ -32,3 +32,8 @@ logging:
         org.hibernate.orm.jdbc.bind: TRACE
         org.flywaydb: DEBUG
         org.springframework.boot.autoconfigure.flyway: DEBUG
+
+jwt:
+    secret: 6nX9QvK2Lm8PzR4YhW7JcB5DsTfG1UaE9xVrM3NpQsLdH8Kz
+    access-token-expiration: 900000
+    refresh-token-expiration: 604800000

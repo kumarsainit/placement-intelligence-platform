@@ -3,6 +3,8 @@ package com.placementintelligence.controller;
 import com.placementintelligence.common.response.ApiResponse;
 import com.placementintelligence.common.response.ApiResponseFactory;
 import com.placementintelligence.dto.request.SendOtpRequest;
+import com.placementintelligence.dto.request.VerifyOtpRequest;
+import com.placementintelligence.dto.response.LoginResponse;
 import com.placementintelligence.dto.response.SendOtpResponse;
 import com.placementintelligence.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,6 +30,21 @@ public class AuthController {
         return ApiResponseFactory.success(
             response,
             "OTP sent successfully",
+            httpRequest
+        );
+    }
+
+    @PostMapping("/verify-otp")
+    public ApiResponse<LoginResponse> verifyOtp(
+        @Valid @RequestBody VerifyOtpRequest request,
+        HttpServletRequest httpRequest
+    ) {
+
+        LoginResponse response = authService.verifyOtp(request);
+
+        return ApiResponseFactory.success(
+            response,
+            "OTP verified successfully",
             httpRequest
         );
     }

@@ -11,4 +11,5 @@ public interface OtpVerificationRepository
     Optional<OtpVerification> findTopByPhoneNumberOrderByCreatedAtDesc(
         String phoneNumber
     );
+
 }
