@@ -16,4 +16,6 @@ public interface UserResumeRepository extends JpaRepository<UserResume, Long> {
     Optional<UserResume> findByUserAndIsPrimaryTrue(User user);
 
     boolean existsByUserAndIsPrimaryTrue(User user);
+
+    Optional<UserResume> findFirstByUserOrderByUploadedAtDesc(User user);
 }

@@ -98,6 +98,26 @@ public class GlobalExceptionHandler {
             .body(response);
     }
 
+    @ExceptionHandler(FileStorageException.class)
+    public ResponseEntity<ApiResponse<Void>> handleFileStorageException(
+        FileStorageException ex,
+        HttpServletRequest request
+    ) {
+
+        ApiResponse<Void> response = new ApiResponse<>(
+            false,
+            HttpStatus.INTERNAL_SERVER_ERROR.value(),
+            "Unable to process resume file.",
+            null,
+            Instant.now(),
+            request.getRequestURI()
+        );
+
+        return ResponseEntity
+            .status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .body(response);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleGenericException(
         Exception ex,

@@ -82,9 +82,9 @@ public class UserResumeController {
                 resumeId
             );
 
-        return ApiResponseFactory.success(
+        return ApiResponseFactory.created(
             response,
-            "Resume fetched successfully",
+            "Resume uploaded successfully",
             request
         );
     }

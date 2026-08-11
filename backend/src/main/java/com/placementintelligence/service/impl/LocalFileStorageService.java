@@ -1,9 +1,13 @@
 package com.placementintelligence.service.impl;
 
+import com.placementintelligence.exception.BadRequestException;
 import com.placementintelligence.service.FileStorageService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.placementintelligence.exception.FileStorageException;
+import com.placementintelligence.exception.ResourceNotFoundException;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -19,17 +23,15 @@ public class LocalFileStorageService implements FileStorageService {
     public Path getResume(String fileUrl) {
 
         if (fileUrl == null || fileUrl.isBlank()) {
-            throw new IllegalArgumentException(
+            throw new BadRequestException(
                 "Resume file path is required"
             );
         }
 
-        Path filePath = Paths.get(fileUrl)
-            .toAbsolutePath()
-            .normalize();
+        Path filePath = resolveStoredFile(fileUrl);
 
         if (!Files.exists(filePath)) {
-            throw new RuntimeException(
+            throw new ResourceNotFoundException(
                 "Resume file not found"
             );
         }
@@ -51,7 +53,7 @@ public class LocalFileStorageService implements FileStorageService {
         try {
             Files.createDirectories(this.resumeStorageLocation);
         } catch (IOException e) {
-            throw new RuntimeException(
+            throw new FileStorageException(
                 "Could not create resume storage directory",
                 e
             );
@@ -66,7 +68,7 @@ public class LocalFileStorageService implements FileStorageService {
         if (originalFileName == null ||
             originalFileName.isBlank()) {
 
-            throw new RuntimeException(
+            throw new BadRequestException(
                 "Invalid resume file name"
             );
         }
@@ -89,7 +91,7 @@ public class LocalFileStorageService implements FileStorageService {
 
         } catch (IOException e) {
 
-            throw new RuntimeException(
+            throw new FileStorageException(
                 "Failed to store resume",
                 e
             );
@@ -105,19 +107,34 @@ public class LocalFileStorageService implements FileStorageService {
             return;
         }
 
-        try {
+        Path filePath = resolveStoredFile(fileUrl);
 
-            Path filePath = Paths.get(fileUrl);
+        try {
 
             Files.deleteIfExists(filePath);
 
         } catch (IOException e) {
 
-            throw new RuntimeException(
+            throw new FileStorageException(
                 "Failed to delete resume file",
                 e
             );
         }
+    }
+
+    private Path resolveStoredFile(String fileUrl) {
+
+        Path filePath = Paths.get(fileUrl)
+            .toAbsolutePath()
+            .normalize();
+
+        if (!filePath.startsWith(resumeStorageLocation)) {
+            throw new BadRequestException(
+                "Invalid resume file path"
+            );
+        }
+
+        return filePath;
     }
 
     private String getExtension(String fileName) {

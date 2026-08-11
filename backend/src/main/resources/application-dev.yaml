@@ -35,5 +35,5 @@ logging:
 
 jwt:
     secret: 6nX9QvK2Lm8PzR4YhW7JcB5DsTfG1UaE9xVrM3NpQsLdH8Kz
-    access-token-expiration: 900000
+    access-token-expiration: 1800000
     refresh-token-expiration: 604800000

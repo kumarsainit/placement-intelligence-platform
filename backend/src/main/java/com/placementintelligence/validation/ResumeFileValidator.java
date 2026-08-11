@@ -1,23 +1,24 @@
 package com.placementintelligence.validation;
 
+import com.placementintelligence.exception.BadRequestException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 @Component
 public class ResumeFileValidator {
 
-    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024;
 
     public void validate(MultipartFile file) {
 
         if (file == null || file.isEmpty()) {
-            throw new IllegalArgumentException(
+            throw new BadRequestException(
                 "Resume file is required"
             );
         }
 
         if (file.getSize() > MAX_FILE_SIZE) {
-            throw new IllegalArgumentException(
+            throw new BadRequestException(
                 "Resume file size must not exceed 5 MB"
             );
         }
@@ -25,7 +26,7 @@ public class ResumeFileValidator {
         String contentType = file.getContentType();
 
         if (!"application/pdf".equalsIgnoreCase(contentType)) {
-            throw new IllegalArgumentException(
+            throw new BadRequestException(
                 "Only PDF resumes are allowed"
             );
         }
@@ -35,7 +36,7 @@ public class ResumeFileValidator {
         if (fileName == null ||
             !fileName.toLowerCase().endsWith(".pdf")) {
 
-            throw new IllegalArgumentException(
+            throw new BadRequestException(
                 "Resume must have a .pdf extension"
             );
         }

@@ -15,6 +15,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.FileSystemResource;
+import com.placementintelligence.exception.ResourceNotFoundException;
+import com.placementintelligence.exception.UnauthorizedException;
 
 import java.time.Instant;
 import java.util.List;
@@ -120,7 +122,7 @@ public class UserResumeServiceImpl implements UserResumeService {
         UserResume resume = resumeRepository
             .findById(resumeId)
             .orElseThrow(() ->
-                new RuntimeException("Resume not found"));
+                new ResourceNotFoundException("Resume not found"));
 
         verifyOwnership(resume, user);
 
@@ -138,7 +140,7 @@ public class UserResumeServiceImpl implements UserResumeService {
         UserResume resume = resumeRepository
             .findById(resumeId)
             .orElseThrow(() ->
-                new RuntimeException("Resume not found"));
+                new ResourceNotFoundException("Resume not found"));
 
         verifyOwnership(resume, user);
 
@@ -169,9 +171,12 @@ public class UserResumeServiceImpl implements UserResumeService {
         UserResume resume = resumeRepository
             .findById(resumeId)
             .orElseThrow(() ->
-                new RuntimeException("Resume not found"));
+                new ResourceNotFoundException("Resume not found"));
 
         verifyOwnership(resume, user);
+
+        boolean wasPrimary =
+            Boolean.TRUE.equals(resume.getIsPrimary());
 
         /*
          * Delete actual PDF from storage
@@ -181,9 +186,27 @@ public class UserResumeServiceImpl implements UserResumeService {
         );
 
         /*
-         * Delete resume metadata from database
+         * Delete resume metadata
          */
         resumeRepository.delete(resume);
+
+        /*
+         * If the deleted resume was primary,
+         * promote the most recently uploaded
+         * remaining resume.
+         */
+        if (wasPrimary) {
+
+            resumeRepository
+                .findFirstByUserOrderByUploadedAtDesc(user)
+                .ifPresent(nextPrimary -> {
+
+                    nextPrimary.setIsPrimary(true);
+                    nextPrimary.setUpdatedAt(Instant.now());
+
+                    resumeRepository.save(nextPrimary);
+                });
+        }
     }
 
     @Override
@@ -197,7 +220,7 @@ public class UserResumeServiceImpl implements UserResumeService {
         UserResume resume = resumeRepository
             .findById(resumeId)
             .orElseThrow(() ->
-                new RuntimeException("Resume not found"));
+                new ResourceNotFoundException("Resume not found"));
 
         verifyOwnership(resume, user);
 
@@ -213,7 +236,7 @@ public class UserResumeServiceImpl implements UserResumeService {
 
         return userRepository.findByUsername(username)
             .orElseThrow(() ->
-                new RuntimeException("User not found"));
+                new ResourceNotFoundException("User not found"));
     }
 
     private void verifyOwnership(
@@ -222,7 +245,7 @@ public class UserResumeServiceImpl implements UserResumeService {
 
         if (!resume.getUser().getId().equals(user.getId())) {
 
-            throw new RuntimeException(
+            throw new ResourceNotFoundException(
                 "You are not authorized to access this resume"
             );
         }
