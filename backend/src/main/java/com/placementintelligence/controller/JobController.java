@@ -11,6 +11,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import com.placementintelligence.dto.request.JobSearchRequest;
+import com.placementintelligence.dto.response.JobSearchResponse;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 
@@ -121,6 +124,21 @@ public class JobController {
         return ApiResponseFactory.success(
             null,
             "Job deleted successfully",
+            request
+        );
+    }
+
+    @GetMapping("/search")
+    public ApiResponse<Page<JobSearchResponse>> searchJobs(
+        @Valid JobSearchRequest searchRequest,
+        HttpServletRequest request) {
+
+        Page<JobSearchResponse> response =
+            jobService.searchOpenJobs(searchRequest);
+
+        return ApiResponseFactory.success(
+            response,
+            "Jobs searched successfully",
             request
         );
     }

@@ -1,8 +1,11 @@
 package com.placementintelligence.service;
 
 import com.placementintelligence.dto.request.CreateJobRequest;
+import com.placementintelligence.dto.request.JobSearchRequest;
 import com.placementintelligence.dto.request.UpdateJobRequest;
 import com.placementintelligence.dto.response.JobResponse;
+import com.placementintelligence.dto.response.JobSearchResponse;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 
@@ -32,5 +35,9 @@ public interface JobService {
     void deleteJob(
         String username,
         Long jobId
+    );
+
+    Page<JobSearchResponse> searchOpenJobs(
+        JobSearchRequest request
     );
 }
