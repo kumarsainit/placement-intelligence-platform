@@ -21,6 +21,18 @@ import com.placementintelligence.service.JobService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.placementintelligence.common.enums.EmploymentType;
+import com.placementintelligence.common.enums.ExperienceLevel;
+import com.placementintelligence.common.enums.JobStatus;
+import com.placementintelligence.dto.request.JobSearchRequest;
+import com.placementintelligence.dto.response.JobSearchResponse;
+import com.placementintelligence.entity.Job;
+import com.placementintelligence.specification.JobSpecification;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -336,5 +348,106 @@ public class JobServiceImpl implements JobService {
                 "Application deadline cannot be in the past"
             );
         }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<JobSearchResponse> searchOpenJobs(
+        JobSearchRequest request) {
+
+        int page =
+            request.page() == null
+                ? 0
+                : request.page();
+
+        int size =
+            request.size() == null
+                ? 10
+                : Math.min(request.size(), 50);
+
+        if (request.minSalary() != null
+            && request.maxSalary() != null
+            && request.minSalary()
+            .compareTo(request.maxSalary()) > 0) {
+
+            throw new BadRequestException(
+                "Minimum salary cannot be greater than maximum salary"
+            );
+        }
+
+        Specification<Job> specification =
+            Specification
+                .where(JobSpecification.hasOpenStatus())
+                .and(
+                    JobSpecification.keywordContains(
+                        request.keyword()
+                    )
+                )
+                .and(
+                    JobSpecification.locationContains(
+                        request.location()
+                    )
+                )
+                .and(
+                    JobSpecification.hasCompany(
+                        request.companyId()
+                    )
+                )
+                .and(
+                    JobSpecification.hasEmploymentType(
+                        request.employmentType()
+                    )
+                )
+                .and(
+                    JobSpecification.hasExperienceLevel(
+                        request.experienceLevel()
+                    )
+                )
+                .and(
+                    JobSpecification.salaryAtLeast(
+                        request.minSalary()
+                    )
+                )
+                .and(
+                    JobSpecification.salaryAtMost(
+                        request.maxSalary()
+                    )
+                );
+
+        Pageable pageable =
+            PageRequest.of(
+                page,
+                size,
+                Sort.by(
+                    Sort.Direction.DESC,
+                    "createdAt"
+                )
+            );
+
+        return jobRepository
+            .findAll(specification, pageable)
+            .map(this::toSearchResponse);
+    }
+
+    private JobSearchResponse toSearchResponse(Job job) {
+
+        return new JobSearchResponse(
+            job.getId(),
+            job.getCompany().getId(),
+            job.getCompany().getName(),
+            job.getRecruiter().getId(),
+            job.getTitle(),
+            job.getDescription(),
+            job.getLocation(),
+            job.getEmploymentType(),
+            job.getExperienceLevel(),
+            job.getSalaryMin(),
+            job.getSalaryMax(),
+            job.getOpenings(),
+            job.getApplicationDeadline(),
+            job.getStatus(),
+            job.getCreatedAt(),
+            job.getUpdatedAt()
+        );
     }
 }
