@@ -1,34 +1,70 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
-interface AuthState {
-  accessToken: string | null;
-  refreshToken: string | null;
-  username: string | null;
-  phoneNumber: string | null;
-
-  setSession: (session: {
+interface AuthSession {
     accessToken: string;
     refreshToken: string;
     username: string;
     phoneNumber: string;
-  }) => void;
-
-  clearSession: () => void;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
-  accessToken: null,
-  refreshToken: null,
-  username: null,
-  phoneNumber: null,
+interface AuthState {
+    accessToken: string | null;
+    refreshToken: string | null;
+    username: string | null;
+    phoneNumber: string | null;
+    hasHydrated: boolean;
 
-  setSession: (session) => set(session),
+    setSession: (session: AuthSession) => void;
+    clearSession: () => void;
+    setHasHydrated: (hasHydrated: boolean) => void;
+}
 
-  clearSession: () =>
-    set({
-      accessToken: null,
-      refreshToken: null,
-      username: null,
-      phoneNumber: null,
-    }),
-}));
+const initialState = {
+    accessToken: null,
+    refreshToken: null,
+    username: null,
+    phoneNumber: null,
+    hasHydrated: false,
+};
+
+export const useAuthStore = create<AuthState>()(
+    persist(
+        (set) => ({
+            ...initialState,
+
+            setSession: (session) =>
+                set({
+                    accessToken: session.accessToken,
+                    refreshToken: session.refreshToken,
+                    username: session.username,
+                    phoneNumber: session.phoneNumber,
+                }),
+
+            clearSession: () =>
+                set({
+                    accessToken: null,
+                    refreshToken: null,
+                    username: null,
+                    phoneNumber: null,
+                }),
+
+            setHasHydrated: (hasHydrated) =>
+                set({ hasHydrated }),
+        }),
+        {
+            name: "placement-intelligence-auth",
+
+            partialize: (state) => ({
+                accessToken: state.accessToken,
+                refreshToken: state.refreshToken,
+                username: state.username,
+                phoneNumber: state.phoneNumber,
+            }),
+
+            onRehydrateStorage: () => (state) => {
+                state?.setHasHydrated(true);
+            },
+        },
+    ),
+);
