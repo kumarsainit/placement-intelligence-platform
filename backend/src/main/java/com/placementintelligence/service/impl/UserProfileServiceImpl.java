@@ -31,7 +31,7 @@ public class UserProfileServiceImpl implements UserProfileService {
 
         UserProfile profile = profileRepository
             .findByUsername(username)
-            .orElseGet(() -> createEmptyProfile(user));
+            .orElseGet(() -> buildEmptyProfile(user));
 
         return mapper.toResponse(profile);
     }
@@ -58,13 +58,29 @@ public class UserProfileServiceImpl implements UserProfileService {
         return mapper.toResponse(profile);
     }
 
-    private UserProfile createEmptyProfile(User user) {
+    /**
+     * Creates an in-memory empty profile representation.
+     *
+     * This method MUST NOT persist the entity because it can be
+     * called from a read-only transaction.
+     */
+    private UserProfile buildEmptyProfile(User user) {
 
-        UserProfile profile = UserProfile.builder()
+        return UserProfile.builder()
             .user(user)
             .createdAt(Instant.now())
             .updatedAt(Instant.now())
             .build();
+    }
+
+    /**
+     * Creates and persists a profile.
+     *
+     * This method is only called from the write transaction.
+     */
+    private UserProfile createEmptyProfile(User user) {
+
+        UserProfile profile = buildEmptyProfile(user);
 
         return profileRepository.save(profile);
     }
