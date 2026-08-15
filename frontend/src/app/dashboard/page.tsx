@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 import { AuthGuard } from "@/features/auth/components/auth-guard";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
@@ -53,13 +54,22 @@ export default function DashboardPage() {
                             )}
                         </div>
 
-                        <button
-                            type="button"
-                            onClick={handleLogout}
-                            className="rounded-lg border px-4 py-2 text-sm font-medium hover:bg-zinc-100"
-                        >
-                            Logout
-                        </button>
+                        <div className="flex items-center gap-3">
+                            <Link
+                                href="/profile"
+                                className="rounded-lg border px-4 py-2 text-sm font-medium hover:bg-zinc-100"
+                            >
+                                Profile
+                            </Link>
+
+                            <button
+                                type="button"
+                                onClick={handleLogout}
+                                className="rounded-lg border px-4 py-2 text-sm font-medium hover:bg-zinc-100"
+                            >
+                                Logout
+                            </button>
+                        </div>
                     </header>
 
                     <section className="mt-8">
