@@ -22,8 +22,7 @@ export type ExperienceLevel =
 export type JobStatus =
     | "DRAFT"
     | "OPEN"
-    | "CLOSED"
-    | "EXPIRED";
+    | "CLOSED";
 
 export interface Job {
     id: number;
