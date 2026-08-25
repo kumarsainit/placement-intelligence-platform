@@ -1,19 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
+import { AppShell } from "@/components/layout/app-shell";
 import { AuthGuard } from "@/features/auth/components/auth-guard";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import { useApplications } from "@/features/applications/hooks/use-applications";
 import { DashboardSection } from "@/features/dashboard/components/dashboard-section";
 import { DashboardStatCard } from "@/features/dashboard/components/dashboard-stat-card";
 import { useEducations } from "@/features/education/hooks/use-educations";
-import { useProjects } from "@/features/projects/hooks/use-projects";
 import { useProfile } from "@/features/profile/hooks/use-profile";
+import { useProjects } from "@/features/projects/hooks/use-projects";
 import { useResumes } from "@/features/resume/hooks/use-resumes";
 import { useSkills } from "@/features/skills/hooks/use-skills";
-import { useAuthStore } from "@/stores/auth-store";
 
 function formatDate(date: string) {
     return new Date(date).toLocaleDateString("en-IN", {
@@ -24,12 +23,6 @@ function formatDate(date: string) {
 }
 
 export default function DashboardPage() {
-    const router = useRouter();
-
-    const clearSession = useAuthStore(
-        (state) => state.clearSession,
-    );
-
     const currentUserQuery = useCurrentUser();
     const profileQuery = useProfile();
     const resumesQuery = useResumes();
@@ -37,11 +30,6 @@ export default function DashboardPage() {
     const skillsQuery = useSkills();
     const projectsQuery = useProjects();
     const applicationsQuery = useApplications();
-
-    const handleLogout = () => {
-        clearSession();
-        router.replace("/auth");
-    };
 
     const currentUser = currentUserQuery.data?.data;
     const profile = profileQuery.data?.data;
@@ -58,18 +46,22 @@ export default function DashboardPage() {
 
     const applicationCounts = {
         total: applications.length,
+
         applied: applications.filter(
             (application) =>
                 application.status === "APPLIED",
         ).length,
+
         shortlisted: applications.filter(
             (application) =>
                 application.status === "SHORTLISTED",
         ).length,
+
         selected: applications.filter(
             (application) =>
                 application.status === "SELECTED",
         ).length,
+
         rejected: applications.filter(
             (application) =>
                 application.status === "REJECTED",
@@ -120,9 +112,9 @@ export default function DashboardPage() {
 
     return (
         <AuthGuard>
-            <main className="min-h-screen bg-zinc-50 p-6 sm:p-8">
-                <div className="mx-auto max-w-6xl">
-                    <header className="flex flex-col gap-5 border-b pb-6 sm:flex-row sm:items-center sm:justify-between">
+            <AppShell>
+                <div className="mx-auto max-w-6xl p-6 sm:p-8">
+                    <div className="space-y-10">
                         <div>
                             <p className="text-sm font-medium text-zinc-500">
                                 Placement Intelligence
@@ -155,25 +147,6 @@ export default function DashboardPage() {
                             )}
                         </div>
 
-                        <div className="flex items-center gap-3">
-                            <Link
-                                href="/profile"
-                                className="rounded-lg border bg-white px-4 py-2 text-sm font-medium hover:bg-zinc-100"
-                            >
-                                Profile
-                            </Link>
-
-                            <button
-                                type="button"
-                                onClick={handleLogout}
-                                className="rounded-lg border bg-white px-4 py-2 text-sm font-medium hover:bg-zinc-100"
-                            >
-                                Logout
-                            </button>
-                        </div>
-                    </header>
-
-                    <div className="mt-8 space-y-10">
                         <DashboardSection
                             title="Profile Overview"
                             description="Keep your placement profile complete and up to date."
@@ -484,7 +457,7 @@ export default function DashboardPage() {
                         </DashboardSection>
                     </div>
                 </div>
-            </main>
+            </AppShell>
         </AuthGuard>
     );
 }
