@@ -1,0 +1,58 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+
+const navigationItems = [
+    {
+        label: "Dashboard",
+        href: "/dashboard",
+    },
+    {
+        label: "Jobs",
+        href: "/jobs",
+    },
+    {
+        label: "Applications",
+        href: "/applications",
+    },
+    {
+        label: "Profile",
+        href: "/profile",
+    },
+];
+
+export function AppNavigation() {
+    const pathname = usePathname();
+
+    return (
+        <nav
+            aria-label="Primary navigation"
+            className="border-b bg-white"
+        >
+            <div className="mx-auto flex max-w-6xl items-center gap-1 overflow-x-auto px-6 sm:px-8">
+                {navigationItems.map((item) => {
+                    const isActive =
+                        pathname === item.href ||
+                        pathname.startsWith(
+                            `${item.href}/`,
+                        );
+
+                    return (
+                        <Link
+                            key={item.href}
+                            href={item.href}
+                            className={`whitespace-nowrap border-b-2 px-4 py-3 text-sm font-medium transition ${
+                                isActive
+                                    ? "border-black text-black"
+                                    : "border-transparent text-zinc-500 hover:text-zinc-900"
+                            }`}
+                        >
+                            {item.label}
+                        </Link>
+                    );
+                })}
+            </div>
+        </nav>
+    );
+}
