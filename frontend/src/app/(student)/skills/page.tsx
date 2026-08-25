@@ -1,42 +1,46 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
 import { useState } from "react";
 
-import { AuthGuard } from "@/features/auth/components/auth-guard";
-import { ProjectForm } from "@/features/projects/components/project-form";
-import { ProjectList } from "@/features/projects/components/project-list";
-import { useAddProject } from "@/features/projects/hooks/use-add-project";
-import { useDeleteProject } from "@/features/projects/hooks/use-delete-project";
-import { useProjects } from "@/features/projects/hooks/use-projects";
-import { useUpdateProject } from "@/features/projects/hooks/use-update-project";
+import { SkillForm } from "@/features/skills/components/skill-form";
+import { SkillList } from "@/features/skills/components/skill-list";
+import { useAddSkill } from "@/features/skills/hooks/use-add-skill";
+import { useDeleteSkill } from "@/features/skills/hooks/use-delete-skill";
+import { useSkills } from "@/features/skills/hooks/use-skills";
+import { useUpdateSkill } from "@/features/skills/hooks/use-update-skill";
+import { useUserSkills } from "@/features/skills/hooks/use-user-skills";
 
-import type { ProjectFormValues } from "@/features/projects/schemas/project-schema";
-import type { Project } from "@/features/projects/types/project";
+import type {
+    SkillFormValues,
+} from "@/features/skills/schemas/skill-schema";
 
-export default function ProjectsPage() {
-    const [editingProject, setEditingProject] =
-        useState<Project | null>(null);
+import type {
+    UserSkill,
+} from "@/features/skills/types/skill";
+
+export default function SkillsPage() {
+    const [editingSkill, setEditingSkill] =
+        useState<UserSkill | null>(null);
 
     const [showForm, setShowForm] = useState(false);
 
-    const projectsQuery = useProjects();
+    const skillsQuery = useSkills();
+    const userSkillsQuery = useUserSkills();
 
-    const addProjectMutation = useAddProject();
-    const updateProjectMutation = useUpdateProject();
-    const deleteProjectMutation = useDeleteProject();
+    const addSkillMutation = useAddSkill();
+    const updateSkillMutation = useUpdateSkill();
+    const deleteSkillMutation = useDeleteSkill();
 
-    const handleSubmit = (values: ProjectFormValues) => {
-        if (editingProject) {
-            updateProjectMutation.mutate(
+    const handleSubmit = (values: SkillFormValues) => {
+        if (editingSkill) {
+            updateSkillMutation.mutate(
                 {
-                    projectId: editingProject.id,
+                    userSkillId: editingSkill.id,
                     request: values,
                 },
                 {
                     onSuccess: () => {
-                        setEditingProject(null);
+                        setEditingSkill(null);
                         setShowForm(false);
                     },
                 },
@@ -45,61 +49,59 @@ export default function ProjectsPage() {
             return;
         }
 
-        addProjectMutation.mutate(values, {
+        addSkillMutation.mutate(values, {
             onSuccess: () => {
                 setShowForm(false);
             },
         });
     };
 
-    const handleEdit = (project: Project) => {
-        setEditingProject(project);
+    const handleEdit = (skill: UserSkill) => {
+        setEditingSkill(skill);
         setShowForm(true);
     };
 
-    const handleDelete = (projectId: number) => {
+    const handleDelete = (skillId: number) => {
         const confirmed = window.confirm(
-            "Are you sure you want to delete this project?",
+            "Are you sure you want to remove this skill?",
         );
 
         if (!confirmed) {
             return;
         }
 
-        deleteProjectMutation.mutate(projectId);
+        deleteSkillMutation.mutate(skillId);
     };
 
     const handleCancel = () => {
-        setEditingProject(null);
+        setEditingSkill(null);
         setShowForm(false);
     };
 
     const isSubmitting =
-        addProjectMutation.isPending ||
-        updateProjectMutation.isPending;
+        addSkillMutation.isPending ||
+        updateSkillMutation.isPending;
 
-    const isLoading = projectsQuery.isLoading;
+    const isLoading =
+        skillsQuery.isLoading ||
+        userSkillsQuery.isLoading;
 
-    const error = projectsQuery.error;
-
-    const mutationError =
-        addProjectMutation.error ||
-        updateProjectMutation.error ||
-        deleteProjectMutation.error;
+    const error =
+        skillsQuery.error ||
+        userSkillsQuery.error;
 
     return (
-        <AuthGuard>
             <main className="min-h-screen p-8">
                 <div className="mx-auto max-w-4xl">
                     <header className="mb-8 flex items-start justify-between gap-4">
                         <div>
                             <h1 className="text-3xl font-bold">
-                                Student Projects
+                                Student Skills
                             </h1>
 
                             <p className="mt-2 text-zinc-600">
-                                Manage the projects that showcase
-                                your experience and skills.
+                                Manage your technical and
+                                professional skills.
                             </p>
                         </div>
 
@@ -109,7 +111,7 @@ export default function ProjectsPage() {
                                 onClick={() => setShowForm(true)}
                                 className="rounded-lg bg-black px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800"
                             >
-                                Add Project
+                                Add Skill
                             </button>
                         )}
                     </header>
@@ -117,13 +119,16 @@ export default function ProjectsPage() {
                     {showForm && (
                         <section className="mb-8">
                             <h2 className="mb-4 text-xl font-semibold">
-                                {editingProject
-                                    ? "Edit Project"
-                                    : "Add Project"}
+                                {editingSkill
+                                    ? "Edit Skill"
+                                    : "Add Skill"}
                             </h2>
 
-                            <ProjectForm
-                                editingProject={editingProject}
+                            <SkillForm
+                                skills={
+                                    skillsQuery.data?.data ?? []
+                                }
+                                editingSkill={editingSkill}
                                 isSubmitting={isSubmitting}
                                 onSubmit={handleSubmit}
                                 onCancel={handleCancel}
@@ -131,18 +136,10 @@ export default function ProjectsPage() {
                         </section>
                     )}
 
-                    {mutationError && (
-                        <div className="mb-6 rounded-xl border border-red-200 bg-red-50 p-5">
-                            <p className="text-sm text-red-600">
-                                {mutationError.message}
-                            </p>
-                        </div>
-                    )}
-
                     {isLoading && (
                         <div className="rounded-xl border p-8 text-center">
                             <p className="text-sm text-zinc-500">
-                                Loading projects...
+                                Loading skills...
                             </p>
                         </div>
                     )}
@@ -150,7 +147,7 @@ export default function ProjectsPage() {
                     {error && (
                         <div className="rounded-xl border border-red-200 bg-red-50 p-5">
                             <p className="text-sm text-red-600">
-                                Unable to load projects. Please try
+                                Unable to load skills. Please try
                                 again.
                             </p>
                         </div>
@@ -160,24 +157,24 @@ export default function ProjectsPage() {
                         <section>
                             <div className="mb-4">
                                 <h2 className="text-xl font-semibold">
-                                    My Projects
+                                    My Skills
                                 </h2>
 
                                 <p className="mt-1 text-sm text-zinc-500">
-                                    Projects added to your placement
+                                    Skills added to your placement
                                     profile.
                                 </p>
                             </div>
 
-                            <ProjectList
-                                projects={
-                                    projectsQuery.data?.data ?? []
+                            <SkillList
+                                skills={
+                                    userSkillsQuery.data?.data ?? []
                                 }
                                 onEdit={handleEdit}
                                 onDelete={handleDelete}
-                                deletingProjectId={
-                                    deleteProjectMutation.isPending
-                                        ? deleteProjectMutation.variables
+                                deletingSkillId={
+                                    deleteSkillMutation.isPending
+                                        ? deleteSkillMutation.variables
                                         : null
                                 }
                             />
@@ -185,6 +182,5 @@ export default function ProjectsPage() {
                     )}
                 </div>
             </main>
-        </AuthGuard>
     );
 }

@@ -3,7 +3,6 @@
 import Link from "next/link";
 
 import { AppShell } from "@/components/layout/app-shell";
-import { AuthGuard } from "@/features/auth/components/auth-guard";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import { useApplications } from "@/features/applications/hooks/use-applications";
 import { DashboardSection } from "@/features/dashboard/components/dashboard-section";
@@ -111,7 +110,6 @@ export default function DashboardPage() {
     );
 
     return (
-        <AuthGuard>
             <AppShell>
                 <div className="mx-auto max-w-6xl p-6 sm:p-8">
                     <div className="space-y-10">
@@ -458,6 +456,5 @@ export default function DashboardPage() {
                     </div>
                 </div>
             </AppShell>
-        </AuthGuard>
     );
 }

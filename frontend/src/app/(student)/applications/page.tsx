@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 
-import { AuthGuard } from "@/features/auth/components/auth-guard";
 import { ApplicationSummary } from "@/features/applications/components/application-summary";
 import { ApplicationList } from "@/features/applications/components/application-list";
 import { useApplications } from "@/features/applications/hooks/use-applications";
@@ -11,7 +10,6 @@ export default function ApplicationsPage() {
     const applicationsQuery = useApplications();
 
     return (
-        <AuthGuard>
             <main className="min-h-screen bg-zinc-50 p-8">
                 <div className="mx-auto max-w-4xl">
                     <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -85,6 +83,5 @@ export default function ApplicationsPage() {
                         )}
                 </div>
             </main>
-        </AuthGuard>
     );
 }

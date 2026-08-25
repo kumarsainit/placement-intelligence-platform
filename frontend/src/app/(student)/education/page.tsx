@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 
-import { AuthGuard } from "@/features/auth/components/auth-guard";
 import { EducationForm } from "@/features/education/components/education-form";
 import { EducationList } from "@/features/education/components/education-list";
 import { useAddEducation } from "@/features/education/hooks/use-add-education";
@@ -83,7 +82,6 @@ export default function EducationPage() {
         updateEducationMutation.isPending;
 
     return (
-        <AuthGuard>
             <main className="min-h-screen p-8">
                 <div className="mx-auto max-w-4xl">
                     <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -165,6 +163,5 @@ export default function EducationPage() {
                     )}
                 </div>
             </main>
-        </AuthGuard>
     );
 }

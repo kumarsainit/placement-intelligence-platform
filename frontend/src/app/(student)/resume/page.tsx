@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 
-import { AuthGuard } from "@/features/auth/components/auth-guard";
 import { ResumeList } from "@/features/resume/components/resume-list";
 import { ResumeUploadForm } from "@/features/resume/components/resume-upload-form";
 import { getResumeFile } from "@/features/resume/api/resume-api";
@@ -82,7 +81,6 @@ export default function ResumePage() {
             : null;
 
     return (
-        <AuthGuard>
             <main className="min-h-screen p-8">
                 <div className="mx-auto max-w-4xl">
                     <header className="mb-8">
@@ -189,6 +187,5 @@ export default function ResumePage() {
                     </section>
                 </div>
             </main>
-        </AuthGuard>
     );
 }
