@@ -3,6 +3,7 @@
 import Link from "next/link";
 
 import { AuthGuard } from "@/features/auth/components/auth-guard";
+import { ApplicationSummary } from "@/features/applications/components/application-summary";
 import { ApplicationList } from "@/features/applications/components/application-list";
 import { useApplications } from "@/features/applications/hooks/use-applications";
 
@@ -66,12 +67,21 @@ export default function ApplicationsPage() {
 
                     {!applicationsQuery.isLoading &&
                         !applicationsQuery.isError && (
-                            <ApplicationList
-                                applications={
-                                    applicationsQuery.data
-                                        ?.data ?? []
-                                }
-                            />
+                            <>
+                                <ApplicationSummary
+                                    applications={
+                                        applicationsQuery.data
+                                            ?.data ?? []
+                                    }
+                                />
+
+                                <ApplicationList
+                                    applications={
+                                        applicationsQuery.data
+                                            ?.data ?? []
+                                    }
+                                />
+                            </>
                         )}
                 </div>
             </main>
