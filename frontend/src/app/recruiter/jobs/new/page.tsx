@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-import { AuthGuard } from "@/features/auth/components/auth-guard";
 import { useCompanies } from "@/features/jobs/hooks/use-companies";
 import { RecruiterJobForm } from "@/features/recruiter-jobs/components/recruiter-job-form";
 import { useCreateRecruiterJob } from "@/features/recruiter-jobs/hooks/use-create-recruiter-job";
@@ -36,7 +35,6 @@ export default function CreateRecruiterJobPage() {
         createMutation.isPending;
 
     return (
-        <AuthGuard>
             <main className="min-h-screen bg-zinc-50 p-6 sm:p-8">
                 <div className="mx-auto max-w-3xl">
                     <header className="mb-8">
@@ -116,6 +114,5 @@ export default function CreateRecruiterJobPage() {
                     )}
                 </div>
             </main>
-        </AuthGuard>
     );
 }

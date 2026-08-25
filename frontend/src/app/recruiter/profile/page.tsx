@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 
-import { AuthGuard } from "@/features/auth/components/auth-guard";
 import { useCompanies } from "@/features/jobs/hooks/use-companies";
 import { RecruiterProfileForm } from "@/features/recruiter-profile/components/recruiter-profile-form";
 import { useCreateRecruiterProfile } from "@/features/recruiter-profile/hooks/use-create-recruiter-profile";
@@ -49,7 +48,6 @@ export default function RecruiterProfilePage() {
     };
 
     return (
-        <AuthGuard>
             <main className="min-h-screen bg-zinc-50 p-6 sm:p-8">
                 <div className="mx-auto max-w-3xl">
                     <header className="mb-8">
@@ -136,6 +134,5 @@ export default function RecruiterProfilePage() {
                     )}
                 </div>
             </main>
-        </AuthGuard>
     );
 }

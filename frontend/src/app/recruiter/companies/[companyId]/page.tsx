@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
-import { AuthGuard } from "@/features/auth/components/auth-guard";
 import { useRecruiterCompany } from "@/features/recruiter-company/hooks/use-recruiter-company";
 
 function formatDate(value: string) {
@@ -30,7 +29,6 @@ export default function RecruiterCompanyPage() {
         companyQuery.data?.data;
 
     return (
-        <AuthGuard>
             <main className="min-h-screen bg-zinc-50 p-6 sm:p-8">
                 <div className="mx-auto max-w-3xl">
                     <header className="mb-8">
@@ -188,6 +186,5 @@ export default function RecruiterCompanyPage() {
                         )}
                 </div>
             </main>
-        </AuthGuard>
     );
 }
