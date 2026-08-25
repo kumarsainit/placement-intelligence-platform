@@ -1,13 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 
-import { AuthGuard } from "@/features/auth/components/auth-guard";
-import { ApplyJobForm } from "@/features/applications/components/apply-job-form";
-import { useApplications } from "@/features/applications/hooks/use-applications";
-import { useApplyJob } from "@/features/applications/hooks/use-apply-job";
-import type { ApplicationFormValues } from "@/features/applications/schemas/application-schema";
 import { useJob } from "@/features/jobs/hooks/use-job";
 
 function formatEnum(value: string) {
@@ -51,40 +46,13 @@ function formatDate(date: string) {
 
 export default function JobDetailsPage() {
     const params = useParams();
-    const router = useRouter();
 
     const jobId = Number(params.jobId);
 
     const jobQuery = useJob(jobId);
-    const applyJobMutation = useApplyJob();
-    const applicationsQuery = useApplications();
-
-    const handleApply = (
-        values: ApplicationFormValues,
-    ) => {
-        applyJobMutation.mutate(
-            {
-                jobId,
-                resumeId: values.resumeId,
-                coverLetter:
-                    values.coverLetter?.trim() || undefined,
-            },
-            {
-                onSuccess: (response) => {
-                    const applicationId =
-                        response.data.id;
-
-                    router.push(
-                        `/applications/${applicationId}`,
-                    );
-                },
-            },
-        );
-    };
 
     if (!Number.isInteger(jobId) || jobId <= 0) {
         return (
-            <AuthGuard>
                 <main className="min-h-screen bg-zinc-50 p-8">
                     <div className="mx-auto max-w-4xl">
                         <div className="rounded-xl border border-red-200 bg-red-50 p-6">
@@ -105,13 +73,11 @@ export default function JobDetailsPage() {
                         </div>
                     </div>
                 </main>
-            </AuthGuard>
         );
     }
 
     if (jobQuery.isLoading) {
         return (
-            <AuthGuard>
                 <main className="min-h-screen bg-zinc-50 p-8">
                     <div className="mx-auto max-w-4xl">
                         <div className="rounded-xl border bg-white p-10 text-center shadow-sm">
@@ -121,16 +87,11 @@ export default function JobDetailsPage() {
                         </div>
                     </div>
                 </main>
-            </AuthGuard>
         );
     }
 
-    if (
-        jobQuery.isError ||
-        !jobQuery.data?.data
-    ) {
+    if (jobQuery.isError || !jobQuery.data?.data) {
         return (
-            <AuthGuard>
                 <main className="min-h-screen bg-zinc-50 p-8">
                     <div className="mx-auto max-w-4xl">
                         <div className="rounded-xl border border-red-200 bg-red-50 p-6">
@@ -152,22 +113,12 @@ export default function JobDetailsPage() {
                         </div>
                     </div>
                 </main>
-            </AuthGuard>
         );
     }
 
     const job = jobQuery.data.data;
 
-    const isOpen = job.status === "OPEN";
-
-    const existingApplication =
-        applicationsQuery.data?.data.find(
-            (application) =>
-                application.jobId === job.id,
-        );
-
     return (
-        <AuthGuard>
             <main className="min-h-screen bg-zinc-50 p-8">
                 <div className="mx-auto max-w-4xl">
                     <Link
@@ -190,13 +141,7 @@ export default function JobDetailsPage() {
                                     </p>
                                 </div>
 
-                                <span
-                                    className={`w-fit rounded-full px-3 py-1 text-sm font-medium ${
-                                        isOpen
-                                            ? "bg-green-100 text-green-700"
-                                            : "bg-zinc-100 text-zinc-700"
-                                    }`}
-                                >
+                                <span className="w-fit rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-700">
                                     {formatEnum(job.status)}
                                 </span>
                             </div>
@@ -299,69 +244,9 @@ export default function JobDetailsPage() {
                                     {job.location}
                                 </p>
                             </section>
-
-                            <section className="mt-10 border-t pt-10">
-                                {existingApplication ? (
-                                    <div className="rounded-xl border border-blue-200 bg-blue-50 p-5">
-                                        <h2 className="font-semibold text-blue-800">
-                                            You have already applied
-                                        </h2>
-
-                                        <p className="mt-1 text-sm text-blue-700">
-                                            You submitted an application for this job
-                                            on{" "}
-                                            {formatDate(
-                                                existingApplication.appliedAt,
-                                            )}
-                                            .
-                                        </p>
-
-                                        <Link
-                                            href={`/applications/${existingApplication.id}`}
-                                            className="mt-4 inline-block rounded-lg bg-black px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800"
-                                        >
-                                            View Application
-                                        </Link>
-                                    </div>
-                                ) : isOpen ? (
-                                    <>
-                                        <h2 className="mb-5 text-2xl font-semibold">
-                                            Apply for this job
-                                        </h2>
-
-                                        <ApplyJobForm
-                                            isSubmitting={
-                                                applyJobMutation.isPending
-                                            }
-                                            onSubmit={handleApply}
-                                        />
-
-                                        {applyJobMutation.isError && (
-                                            <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-4">
-                                                <p className="text-sm text-red-600">
-                                                    {applyJobMutation.error?.message ||
-                                                        "Unable to submit your application. Please try again."}
-                                                </p>
-                                            </div>
-                                        )}
-                                    </>
-                                ) : (
-                                    <div className="rounded-xl border border-amber-200 bg-amber-50 p-5">
-                                        <h2 className="font-semibold text-amber-800">
-                                            Applications are closed
-                                        </h2>
-
-                                        <p className="mt-1 text-sm text-amber-700">
-                                            This job is no longer accepting
-                                            applications.
-                                        </p>
-                                    </div>
-                                )}
-                            </section>
                         </div>
                     </article>
                 </div>
             </main>
-        </AuthGuard>
     );
 }

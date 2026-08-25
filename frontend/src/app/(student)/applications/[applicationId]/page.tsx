@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
-import { AuthGuard } from "@/features/auth/components/auth-guard";
 import { ApplicationStatusBadge } from "@/features/applications/components/application-status-badge";
 import { useApplication } from "@/features/applications/hooks/use-application";
 
@@ -40,12 +39,11 @@ export default function ApplicationDetailsPage() {
         applicationId <= 0
     ) {
         return (
-            <AuthGuard>
-                <main className="min-h-screen bg-zinc-50 p-8">
-                    <div className="mx-auto max-w-4xl">
-                        <div className="rounded-xl border border-red-200 bg-red-50 p-6">
-                            <h1 className="text-xl font-semibold text-red-700">
-                                Invalid Application
+            <main className="min-h-screen bg-zinc-50 p-8">
+                <div className="mx-auto max-w-4xl">
+                    <div className="rounded-xl border border-red-200 bg-red-50 p-6">
+                        <h1 className="text-xl font-semibold text-red-700">
+                            Invalid Application
                             </h1>
 
                             <p className="mt-2 text-sm text-red-600">
@@ -62,23 +60,20 @@ export default function ApplicationDetailsPage() {
                         </div>
                     </div>
                 </main>
-            </AuthGuard>
         );
     }
 
     if (applicationQuery.isLoading) {
         return (
-            <AuthGuard>
-                <main className="min-h-screen bg-zinc-50 p-8">
-                    <div className="mx-auto max-w-4xl">
-                        <div className="rounded-xl border bg-white p-10 text-center shadow-sm">
-                            <p className="text-sm text-zinc-500">
-                                Loading application details...
+            <main className="min-h-screen bg-zinc-50 p-8">
+                <div className="mx-auto max-w-4xl">
+                    <div className="rounded-xl border bg-white p-10 text-center shadow-sm">
+                        <p className="text-sm text-zinc-500">
+                            Loading application details...
                             </p>
                         </div>
                     </div>
                 </main>
-            </AuthGuard>
         );
     }
 
@@ -87,7 +82,6 @@ export default function ApplicationDetailsPage() {
         !applicationQuery.data?.data
     ) {
         return (
-            <AuthGuard>
                 <main className="min-h-screen bg-zinc-50 p-8">
                     <div className="mx-auto max-w-4xl">
                         <div className="rounded-xl border border-red-200 bg-red-50 p-6">
@@ -121,7 +115,6 @@ export default function ApplicationDetailsPage() {
                         </div>
                     </div>
                 </main>
-            </AuthGuard>
         );
     }
 
@@ -129,7 +122,6 @@ export default function ApplicationDetailsPage() {
         applicationQuery.data.data;
 
     return (
-        <AuthGuard>
             <main className="min-h-screen bg-zinc-50 p-8">
                 <div className="mx-auto max-w-4xl">
                     <Link
@@ -281,6 +273,5 @@ export default function ApplicationDetailsPage() {
                     </article>
                 </div>
             </main>
-        </AuthGuard>
     );
 }
