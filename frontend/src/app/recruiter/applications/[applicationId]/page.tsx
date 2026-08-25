@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
-import { AuthGuard } from "@/features/auth/components/auth-guard";
 import { RecruiterApplicationDetails } from "@/features/recruiter-applications/components/recruiter-application-details";
 import { useRecruiterApplication } from "@/features/recruiter-applications/hooks/use-recruiter-application";
 
@@ -23,7 +22,6 @@ export default function RecruiterApplicationPage() {
         applicationQuery.data?.data;
 
     return (
-        <AuthGuard>
             <main className="min-h-screen bg-zinc-50 p-6 sm:p-8">
                 <div className="mx-auto max-w-4xl">
                     <header className="mb-8">
@@ -72,6 +70,5 @@ export default function RecruiterApplicationPage() {
                         )}
                 </div>
             </main>
-        </AuthGuard>
     );
 }

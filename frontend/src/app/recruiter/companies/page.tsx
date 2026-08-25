@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 
-import { AuthGuard } from "@/features/auth/components/auth-guard";
 import { RecruiterCompanyList } from "@/features/recruiter-company/components/recruiter-company-list";
 import { useRecruiterCompanies } from "@/features/recruiter-company/hooks/use-recruiter-companies";
 
@@ -14,7 +13,6 @@ export default function RecruiterCompaniesPage() {
         companiesQuery.data?.data ?? [];
 
     return (
-        <AuthGuard>
             <main className="min-h-screen bg-zinc-50 p-6 sm:p-8">
                 <div className="mx-auto max-w-5xl">
                     <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -73,6 +71,5 @@ export default function RecruiterCompaniesPage() {
                         )}
                 </div>
             </main>
-        </AuthGuard>
     );
 }

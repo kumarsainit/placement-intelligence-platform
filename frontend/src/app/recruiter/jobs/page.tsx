@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 
-import { AuthGuard } from "@/features/auth/components/auth-guard";
 import { RecruiterJobList } from "@/features/recruiter-jobs/components/recruiter-job-list";
 import { useDeleteRecruiterJob } from "@/features/recruiter-jobs/hooks/use-delete-recruiter-job";
 import { useRecruiterJobs } from "@/features/recruiter-jobs/hooks/use-recruiter-jobs";
@@ -26,7 +25,6 @@ export default function RecruiterJobsPage() {
     };
 
     return (
-        <AuthGuard>
             <main className="min-h-screen bg-zinc-50 p-6 sm:p-8">
                 <div className="mx-auto max-w-5xl">
                     <header className="flex flex-col gap-4 border-b pb-6 sm:flex-row sm:items-end sm:justify-between">
@@ -104,6 +102,5 @@ export default function RecruiterJobsPage() {
                     </section>
                 </div>
             </main>
-        </AuthGuard>
     );
 }
