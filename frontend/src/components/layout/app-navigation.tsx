@@ -20,6 +20,22 @@ const navigationItems = [
         label: "Profile",
         href: "/profile",
     },
+    {
+        label: "Education",
+        href: "/education",
+    },
+    {
+        label: "Projects",
+        href: "/projects",
+    },
+    {
+        label: "Resume",
+        href: "/resume",
+    },
+    {
+        label: "Skills",
+        href: "/skills",
+    },
 ];
 
 export function AppNavigation() {
