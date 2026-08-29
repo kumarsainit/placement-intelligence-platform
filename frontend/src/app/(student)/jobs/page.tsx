@@ -1,252 +1,174 @@
 "use client";
 
-import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
-import { useJob } from "@/features/jobs/hooks/use-job";
+import { JobList } from "@/features/jobs/components/job-list";
+import { JobPagination } from "@/features/jobs/components/job-pagination";
+import { JobSearchFilters } from "@/features/jobs/components/job-search-filters";
+import { useCompanies } from "@/features/jobs/hooks/use-companies";
+import { useJobs } from "@/features/jobs/hooks/use-jobs";
+import type {
+    JobSearchFormValues,
+} from "@/features/jobs/schemas/job-search-schema";
 
-function formatEnum(value: string) {
-    return value
-        .replace(/_/g, " ")
-        .toLowerCase()
-        .replace(/\b\w/g, (character) =>
-            character.toUpperCase(),
+const DEFAULT_SEARCH: JobSearchFormValues = {
+    keyword: "",
+    location: "",
+    companyId: undefined,
+    employmentType: undefined,
+    experienceLevel: undefined,
+    minSalary: undefined,
+    maxSalary: undefined,
+    page: 0,
+    size: 10,
+};
+
+export default function JobsPage() {
+    const router = useRouter();
+
+    const [searchParams, setSearchParams] =
+        useState<JobSearchFormValues>(
+            DEFAULT_SEARCH,
         );
-}
 
-function formatSalary(
-    salaryMin: number | null,
-    salaryMax: number | null,
-) {
-    if (salaryMin === null && salaryMax === null) {
-        return "Salary not specified";
-    }
+    const jobsQuery = useJobs(searchParams);
+    const companiesQuery = useCompanies();
 
-    if (salaryMin !== null && salaryMax !== null) {
-        return `₹${salaryMin.toLocaleString()} - ₹${salaryMax.toLocaleString()}`;
-    }
+    const pageData = jobsQuery.data?.data;
 
-    if (salaryMin !== null) {
-        return `From ₹${salaryMin.toLocaleString()}`;
-    }
+    const jobs = pageData?.content ?? [];
 
-    return `Up to ₹${salaryMax!.toLocaleString()}`;
-}
+    const handleSearch = (
+        values: JobSearchFormValues,
+    ) => {
+        setSearchParams({
+            ...values,
+            page: 0,
+        });
+    };
 
-function formatDate(date: string) {
-    return new Date(date).toLocaleDateString(
-        "en-IN",
-        {
-            day: "numeric",
-            month: "long",
-            year: "numeric",
-        },
-    );
-}
+    const handlePageChange = (page: number) => {
+        setSearchParams((current) => ({
+            ...current,
+            page,
+        }));
 
-export default function JobDetailsPage() {
-    const params = useParams();
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth",
+        });
+    };
 
-    const jobId = Number(params.jobId);
-
-    const jobQuery = useJob(jobId);
-
-    if (!Number.isInteger(jobId) || jobId <= 0) {
-        return (
-                <main className="min-h-screen bg-zinc-50 p-8">
-                    <div className="mx-auto max-w-4xl">
-                        <div className="rounded-xl border border-red-200 bg-red-50 p-6">
-                            <h1 className="text-xl font-semibold text-red-700">
-                                Invalid Job
-                            </h1>
-
-                            <p className="mt-2 text-sm text-red-600">
-                                The requested job ID is invalid.
-                            </p>
-
-                            <Link
-                                href="/jobs"
-                                className="mt-5 inline-block rounded-lg bg-black px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800"
-                            >
-                                Back to Jobs
-                            </Link>
-                        </div>
-                    </div>
-                </main>
-        );
-    }
-
-    if (jobQuery.isLoading) {
-        return (
-                <main className="min-h-screen bg-zinc-50 p-8">
-                    <div className="mx-auto max-w-4xl">
-                        <div className="rounded-xl border bg-white p-10 text-center shadow-sm">
-                            <p className="text-sm text-zinc-500">
-                                Loading job details...
-                            </p>
-                        </div>
-                    </div>
-                </main>
-        );
-    }
-
-    if (jobQuery.isError || !jobQuery.data?.data) {
-        return (
-                <main className="min-h-screen bg-zinc-50 p-8">
-                    <div className="mx-auto max-w-4xl">
-                        <div className="rounded-xl border border-red-200 bg-red-50 p-6">
-                            <h1 className="text-xl font-semibold text-red-700">
-                                Unable to load job
-                            </h1>
-
-                            <p className="mt-2 text-sm text-red-600">
-                                The requested job could not be
-                                found or loaded.
-                            </p>
-
-                            <Link
-                                href="/jobs"
-                                className="mt-5 inline-block rounded-lg bg-black px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800"
-                            >
-                                Back to Jobs
-                            </Link>
-                        </div>
-                    </div>
-                </main>
-        );
-    }
-
-    const job = jobQuery.data.data;
+    const handleViewDetails = (jobId: number) => {
+        router.push(`/jobs/${jobId}`);
+    };
 
     return (
-            <main className="min-h-screen bg-zinc-50 p-8">
-                <div className="mx-auto max-w-4xl">
-                    <Link
-                        href="/jobs"
-                        className="inline-flex items-center text-sm font-medium text-zinc-600 hover:text-black"
-                    >
-                        ← Back to Jobs
-                    </Link>
+        <main className="min-h-screen bg-zinc-50 p-6 sm:p-8">
+            <div className="mx-auto max-w-6xl">
+                <div className="space-y-8">
 
-                    <article className="mt-6 rounded-xl border bg-white shadow-sm">
-                        <div className="border-b p-6 sm:p-8">
-                            <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                        <h1 className="text-3xl font-bold">
+                            Find Your Next Opportunity
+                        </h1>
+
+                        <p className="mt-2 text-sm text-zinc-600">
+                            Search and discover jobs that match
+                            your skills and career goals.
+                        </p>
+                    </div>
+
+                    <JobSearchFilters
+                        companies={
+                            companiesQuery.data?.data ?? []
+                        }
+                        initialValues={searchParams}
+                        onSearch={handleSearch}
+                    />
+
+                    {jobsQuery.isLoading && (
+                        <div className="rounded-xl border bg-white p-10 text-center shadow-sm">
+                            <p className="text-sm text-zinc-500">
+                                Searching for jobs...
+                            </p>
+                        </div>
+                    )}
+
+                    {jobsQuery.isError && (
+                        <div className="rounded-xl border border-red-200 bg-red-50 p-6">
+                            <h2 className="font-semibold text-red-700">
+                                Unable to load jobs
+                            </h2>
+
+                            <p className="mt-2 text-sm text-red-600">
+                                {jobsQuery.error?.message ??
+                                    "Something went wrong while loading jobs."}
+                            </p>
+
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    jobsQuery.refetch()
+                                }
+                                className="mt-4 rounded-lg bg-black px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800"
+                            >
+                                Try Again
+                            </button>
+                        </div>
+                    )}
+
+                    {jobsQuery.isSuccess && (
+                        <>
+                            <div className="flex items-center justify-between">
                                 <div>
-                                    <h1 className="text-3xl font-bold">
-                                        {job.title}
-                                    </h1>
+                                    <h2 className="text-xl font-semibold">
+                                        Available Jobs
+                                    </h2>
 
-                                    <p className="mt-2 text-lg font-medium text-zinc-700">
-                                        {job.companyName}
+                                    <p className="mt-1 text-sm text-zinc-500">
+                                        {pageData?.totalElements ?? 0}{" "}
+                                        job
+                                        {(pageData?.totalElements ?? 0) ===
+                                        1
+                                            ? ""
+                                            : "s"}{" "}
+                                        found
                                     </p>
                                 </div>
-
-                                <span className="w-fit rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-700">
-                                    {formatEnum(job.status)}
-                                </span>
                             </div>
 
-                            <div className="mt-6 flex flex-wrap gap-2">
-                                <span className="rounded-full bg-zinc-100 px-3 py-1 text-sm text-zinc-700">
-                                    📍 {job.location}
-                                </span>
+                            <JobList
+                                jobs={jobs}
+                                onViewDetails={
+                                    handleViewDetails
+                                }
+                            />
 
-                                <span className="rounded-full bg-zinc-100 px-3 py-1 text-sm text-zinc-700">
-                                    {formatEnum(
-                                        job.employmentType,
-                                    )}
-                                </span>
-
-                                <span className="rounded-full bg-zinc-100 px-3 py-1 text-sm text-zinc-700">
-                                    {formatEnum(
-                                        job.experienceLevel,
-                                    )}
-                                </span>
-                            </div>
-                        </div>
-
-                        <div className="p-6 sm:p-8">
-                            <section>
-                                <h2 className="text-xl font-semibold">
-                                    Job Overview
-                                </h2>
-
-                                <div className="mt-5 grid gap-5 sm:grid-cols-2">
-                                    <div>
-                                        <p className="text-sm text-zinc-500">
-                                            Salary
-                                        </p>
-
-                                        <p className="mt-1 font-medium">
-                                            {formatSalary(
-                                                job.salaryMin,
-                                                job.salaryMax,
-                                            )}
-                                        </p>
-                                    </div>
-
-                                    <div>
-                                        <p className="text-sm text-zinc-500">
-                                            Openings
-                                        </p>
-
-                                        <p className="mt-1 font-medium">
-                                            {job.openings}
-                                        </p>
-                                    </div>
-
-                                    <div>
-                                        <p className="text-sm text-zinc-500">
-                                            Application Deadline
-                                        </p>
-
-                                        <p className="mt-1 font-medium">
-                                            {formatDate(
-                                                job.applicationDeadline,
-                                            )}
-                                        </p>
-                                    </div>
-
-                                    <div>
-                                        <p className="text-sm text-zinc-500">
-                                            Posted
-                                        </p>
-
-                                        <p className="mt-1 font-medium">
-                                            {formatDate(
-                                                job.createdAt,
-                                            )}
-                                        </p>
-                                    </div>
-                                </div>
-                            </section>
-
-                            <section className="mt-10">
-                                <h2 className="text-xl font-semibold">
-                                    Job Description
-                                </h2>
-
-                                <div className="mt-4 whitespace-pre-wrap text-sm leading-7 text-zinc-700">
-                                    {job.description}
-                                </div>
-                            </section>
-
-                            <section className="mt-10 rounded-xl bg-zinc-50 p-5">
-                                <h2 className="font-semibold">
-                                    Company
-                                </h2>
-
-                                <p className="mt-2 text-sm text-zinc-600">
-                                    {job.companyName}
-                                </p>
-
-                                <p className="mt-1 text-sm text-zinc-600">
-                                    {job.location}
-                                </p>
-                            </section>
-                        </div>
-                    </article>
+                            {pageData && (
+                                <JobPagination
+                                    currentPage={
+                                        pageData.number
+                                    }
+                                    totalPages={
+                                        pageData.totalPages
+                                    }
+                                    hasPreviousPage={
+                                        !pageData.first
+                                    }
+                                    hasNextPage={
+                                        !pageData.last
+                                    }
+                                    onPageChange={
+                                        handlePageChange
+                                    }
+                                />
+                            )}
+                        </>
+                    )}
                 </div>
-            </main>
+            </div>
+        </main>
     );
 }
