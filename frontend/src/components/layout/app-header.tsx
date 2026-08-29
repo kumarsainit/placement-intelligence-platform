@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import { useAuthStore } from "@/stores/auth-store";
 
 export function AppHeader() {
     const router = useRouter();
+    const pathname = usePathname();
 
     const username = useAuthStore(
         (state) => state.username,
@@ -19,6 +20,14 @@ export function AppHeader() {
     const clearSession = useAuthStore(
         (state) => state.clearSession,
     );
+
+    const isRecruiterRoute =
+        pathname === "/recruiter" ||
+        pathname.startsWith("/recruiter/");
+
+    const homeHref = isRecruiterRoute
+        ? "/recruiter/dashboard"
+        : "/dashboard";
 
     const handleLogout = () => {
         clearSession();
@@ -33,7 +42,7 @@ export function AppHeader() {
         <header className="border-b bg-white">
             <div className="mx-auto flex min-h-16 max-w-6xl items-center justify-between gap-4 px-6 sm:px-8">
                 <Link
-                    href="/dashboard"
+                    href={homeHref}
                     className="shrink-0 text-lg font-bold tracking-tight"
                 >
                     Placement Intelligence

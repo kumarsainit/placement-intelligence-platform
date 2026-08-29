@@ -1,5 +1,8 @@
 import { create } from "zustand";
+
 import { persist } from "zustand/middleware";
+
+import type { UserRole } from "@/features/auth/api/user-api";
 
 interface AuthSession {
     accessToken: string;
@@ -13,9 +16,10 @@ interface AuthState {
     refreshToken: string | null;
     username: string | null;
     phoneNumber: string | null;
+    role: UserRole | null;
     hasHydrated: boolean;
-
     setSession: (session: AuthSession) => void;
+    setRole: (role: UserRole) => void;
     clearSession: () => void;
     setHasHydrated: (hasHydrated: boolean) => void;
 }
@@ -25,6 +29,7 @@ const initialState = {
     refreshToken: null,
     username: null,
     phoneNumber: null,
+    role: null,
     hasHydrated: false,
 };
 
@@ -39,6 +44,12 @@ export const useAuthStore = create<AuthState>()(
                     refreshToken: session.refreshToken,
                     username: session.username,
                     phoneNumber: session.phoneNumber,
+                    role: null,
+                }),
+
+            setRole: (role) =>
+                set({
+                    role,
                 }),
 
             clearSession: () =>
@@ -47,11 +58,13 @@ export const useAuthStore = create<AuthState>()(
                     refreshToken: null,
                     username: null,
                     phoneNumber: null,
+                    role: null,
                 }),
 
             setHasHydrated: (hasHydrated) =>
                 set({ hasHydrated }),
         }),
+
         {
             name: "placement-intelligence-auth",
 
@@ -60,6 +73,7 @@ export const useAuthStore = create<AuthState>()(
                 refreshToken: state.refreshToken,
                 username: state.username,
                 phoneNumber: state.phoneNumber,
+                role: state.role,
             }),
 
             onRehydrateStorage: () => (state) => {

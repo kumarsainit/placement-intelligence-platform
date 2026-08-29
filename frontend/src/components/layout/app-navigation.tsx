@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const navigationItems = [
+const studentNavigationItems = [
     {
         label: "Dashboard",
         href: "/dashboard",
@@ -38,8 +38,35 @@ const navigationItems = [
     },
 ];
 
+const recruiterNavigationItems = [
+    {
+        label: "Dashboard",
+        href: "/recruiter/dashboard",
+    },
+    {
+        label: "Jobs",
+        href: "/recruiter/jobs",
+    },
+    {
+        label: "Companies",
+        href: "/recruiter/companies",
+    },
+    {
+        label: "Profile",
+        href: "/recruiter/profile",
+    },
+];
+
 export function AppNavigation() {
     const pathname = usePathname();
+
+    const isRecruiterRoute =
+        pathname === "/recruiter" ||
+        pathname.startsWith("/recruiter/");
+
+    const navigationItems = isRecruiterRoute
+        ? recruiterNavigationItems
+        : studentNavigationItems;
 
     return (
         <nav
