@@ -21,10 +21,18 @@ public class UserController {
         Authentication authentication,
         HttpServletRequest request
     ) {
+        String role = authentication.getAuthorities()
+            .stream()
+            .findFirst()
+            .map(authority ->
+                authority.getAuthority().replace("ROLE_", "")
+            )
+            .orElse(null);
 
         Map<String, Object> data = Map.of(
             "username", authentication.getName(),
-            "authenticated", true
+            "authenticated", true,
+            "role", role
         );
 
         return ApiResponseFactory.success(

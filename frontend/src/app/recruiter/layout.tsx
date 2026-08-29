@@ -13,7 +13,7 @@ export default function RecruiterLayout({
                                             children,
                                         }: RecruiterLayoutProps) {
     return (
-        <AuthGuard>
+        <AuthGuard allowedRole="RECRUITER">
             <AppShell>{children}</AppShell>
         </AuthGuard>
     );

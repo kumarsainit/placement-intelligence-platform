@@ -13,7 +13,7 @@ export default function StudentLayout({
                                           children,
                                       }: StudentLayoutProps) {
     return (
-        <AuthGuard>
+        <AuthGuard allowedRole="USER">
             <AppShell>{children}</AppShell>
         </AuthGuard>
     );
