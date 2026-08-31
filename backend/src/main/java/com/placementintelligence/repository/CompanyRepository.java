@@ -14,4 +14,6 @@ public interface CompanyRepository
     boolean existsByNameIgnoreCase(String name);
 
     List<Company> findByIsActiveTrueOrderByNameAsc();
+
+    long countByIsActiveTrue();
 }

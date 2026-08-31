@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 
+import { AppErrorState } from "@/components/ui/error-3";
 import { useRecruiterDashboard } from "@/features/recruiter-dashboard/hooks/use-recruiter-dashboard";
 
 export default function RecruiterDashboardPage() {
@@ -11,8 +12,11 @@ export default function RecruiterDashboardPage() {
         return (
             <main className="min-h-screen bg-zinc-50 p-6 sm:p-8">
                 <div className="mx-auto max-w-6xl">
-                    <div className="rounded-xl border bg-white p-8 shadow-sm">
-                        Loading recruiter dashboard...
+                    <div className="rounded-2xl border border-zinc-200 bg-white p-12 text-center shadow-sm">
+                        <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-zinc-900 border-t-transparent" />
+                        <p className="mt-4 text-sm font-medium text-zinc-500">
+                            Loading recruiter dashboard...
+                        </p>
                     </div>
                 </div>
             </main>
@@ -23,16 +27,14 @@ export default function RecruiterDashboardPage() {
         return (
             <main className="min-h-screen bg-zinc-50 p-6 sm:p-8">
                 <div className="mx-auto max-w-6xl">
-                    <div className="rounded-xl border border-red-200 bg-red-50 p-6">
-                        <h1 className="text-lg font-semibold text-red-700">
-                            Unable to load recruiter dashboard
-                        </h1>
-
-                        <p className="mt-2 text-sm text-red-600">
-                            {dashboard.error?.message ??
-                                "Something went wrong while loading the dashboard."}
-                        </p>
-                    </div>
+                    <AppErrorState
+                        title="Unable to load recruiter dashboard"
+                        message={
+                            dashboard.error?.message ??
+                            "Something went wrong while loading your recruiter dashboard. Please try again."
+                        }
+                        onRetry={() => window.location.reload()}
+                    />
                 </div>
             </main>
         );

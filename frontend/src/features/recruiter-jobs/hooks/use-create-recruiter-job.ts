@@ -25,6 +25,14 @@ export function useCreateRecruiterJob() {
             queryClient.invalidateQueries({
                 queryKey: RECRUITER_JOBS_QUERY_KEY,
             });
+
+            queryClient.invalidateQueries({
+                queryKey: ["recruiter-dashboard"],
+            });
+
+            queryClient.invalidateQueries({
+                queryKey: ["jobs"],
+            });
         },
     });
 }

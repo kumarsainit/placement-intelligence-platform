@@ -24,4 +24,6 @@ public interface JobRepository
         Long jobId,
         RecruiterProfile recruiter
     );
+
+    long countByStatus(com.placementintelligence.common.enums.JobStatus status);
 }

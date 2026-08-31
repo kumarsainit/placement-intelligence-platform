@@ -245,7 +245,7 @@ public class JobServiceImpl implements JobService {
             );
 
         if (user.getRole() != UserRole.RECRUITER) {
-            throw new UnauthorizedException(
+            throw new org.springframework.security.access.AccessDeniedException(
                 "Only recruiters can manage jobs"
             );
         }
@@ -253,7 +253,7 @@ public class JobServiceImpl implements JobService {
         if (!Boolean.TRUE.equals(
             user.getIsActive()
         )) {
-            throw new UnauthorizedException(
+            throw new org.springframework.security.access.AccessDeniedException(
                 "User account is inactive"
             );
         }
@@ -295,7 +295,7 @@ public class JobServiceImpl implements JobService {
                 .getId()
                 .equals(company.getId())) {
 
-            throw new UnauthorizedException(
+            throw new org.springframework.security.access.AccessDeniedException(
                 "Recruiter is not associated with this company"
             );
         }
@@ -312,7 +312,7 @@ public class JobServiceImpl implements JobService {
                 .getId()
                 .equals(recruiter.getId())) {
 
-            throw new UnauthorizedException(
+            throw new org.springframework.security.access.AccessDeniedException(
                 "You are not authorized to manage this job"
             );
         }

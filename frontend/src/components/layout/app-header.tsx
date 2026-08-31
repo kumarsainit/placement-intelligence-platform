@@ -25,9 +25,15 @@ export function AppHeader() {
         pathname === "/recruiter" ||
         pathname.startsWith("/recruiter/");
 
-    const homeHref = isRecruiterRoute
-        ? "/recruiter/dashboard"
-        : "/dashboard";
+    const isAdminRoute =
+        pathname === "/admin" ||
+        pathname.startsWith("/admin/");
+
+    const homeHref = isAdminRoute
+        ? "/admin/dashboard"
+        : isRecruiterRoute
+            ? "/recruiter/dashboard"
+            : "/dashboard";
 
     const handleLogout = () => {
         clearSession();

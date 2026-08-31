@@ -2,7 +2,7 @@ import { apiClient } from "@/lib/api/client";
 
 import type { ApiResponse } from "@/types/api";
 
-export type UserRole = "USER" | "RECRUITER";
+export type UserRole = "USER" | "RECRUITER" | "ADMIN" | "SUPER_ADMIN";
 
 export interface CurrentUserResponse {
     username: string;

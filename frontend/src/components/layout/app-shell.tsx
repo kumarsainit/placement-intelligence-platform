@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
 import { AppNavigation } from "@/components/layout/app-navigation";
+import { AppFooter } from "@/components/layout/app-footer";
 
 interface AppShellProps {
     children: ReactNode;
@@ -20,6 +21,8 @@ export function AppShell({
             <main className="flex-1">
                 {children}
             </main>
+
+            <AppFooter />
         </div>
     );
 }

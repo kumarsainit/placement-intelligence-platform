@@ -29,6 +29,12 @@ export function ApplicationCard({
                         {application.jobTitle}
                     </h3>
 
+                    {application.companyName && (
+                        <p className="mt-0.5 text-sm font-medium text-zinc-700">
+                            {application.companyName}
+                        </p>
+                    )}
+
                     <p className="mt-1 text-sm text-zinc-500">
                         Application #{application.id}
                     </p>
@@ -73,7 +79,14 @@ export function ApplicationCard({
                 </div>
             )}
 
-            <div className="mt-6 flex justify-end">
+            <div className="mt-6 flex items-center justify-between gap-3">
+                <Link
+                    href={`/jobs/${application.jobId}`}
+                    className="text-sm font-medium text-zinc-600 hover:text-black hover:underline"
+                >
+                    View Job Posting →
+                </Link>
+
                 <Link
                     href={`/applications/${application.id}`}
                     className="rounded-lg border px-4 py-2 text-sm font-medium hover:bg-zinc-50"

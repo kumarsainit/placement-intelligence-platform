@@ -44,6 +44,18 @@ export function useUpdateRecruiterJob() {
                     variables.jobId,
                 ],
             });
+
+            queryClient.invalidateQueries({
+                queryKey: ["recruiter-dashboard"],
+            });
+
+            queryClient.invalidateQueries({
+                queryKey: ["job", variables.jobId],
+            });
+
+            queryClient.invalidateQueries({
+                queryKey: ["jobs"],
+            });
         },
     });
 }

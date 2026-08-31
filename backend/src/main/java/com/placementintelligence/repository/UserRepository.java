@@ -14,4 +14,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByPhoneNumber(String phoneNumber);
 
     boolean existsByUsername(String username);
+
+    long countByRole(com.placementintelligence.common.enums.UserRole role);
+
+    long countByIsActiveTrue();
 }

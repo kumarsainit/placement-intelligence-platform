@@ -57,6 +57,13 @@ const recruiterNavigationItems = [
     },
 ];
 
+const adminNavigationItems = [
+    {
+        label: "Dashboard",
+        href: "/admin/dashboard",
+    },
+];
+
 export function AppNavigation() {
     const pathname = usePathname();
 
@@ -64,9 +71,15 @@ export function AppNavigation() {
         pathname === "/recruiter" ||
         pathname.startsWith("/recruiter/");
 
-    const navigationItems = isRecruiterRoute
-        ? recruiterNavigationItems
-        : studentNavigationItems;
+    const isAdminRoute =
+        pathname === "/admin" ||
+        pathname.startsWith("/admin/");
+
+    const navigationItems = isAdminRoute
+        ? adminNavigationItems
+        : isRecruiterRoute
+            ? recruiterNavigationItems
+            : studentNavigationItems;
 
     return (
         <nav

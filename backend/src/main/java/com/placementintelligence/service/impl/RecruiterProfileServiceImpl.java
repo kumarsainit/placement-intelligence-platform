@@ -122,13 +122,13 @@ public class RecruiterProfileServiceImpl
             );
 
         if (user.getRole() != UserRole.RECRUITER) {
-            throw new UnauthorizedException(
+            throw new org.springframework.security.access.AccessDeniedException(
                 "Only recruiters can access recruiter profile"
             );
         }
 
         if (!Boolean.TRUE.equals(user.getIsActive())) {
-            throw new UnauthorizedException(
+            throw new org.springframework.security.access.AccessDeniedException(
                 "User account is inactive"
             );
         }

@@ -135,6 +135,13 @@ export function RecruiterJobCard({
 
             <div className="mt-6 flex flex-wrap gap-3">
                 <Link
+                    href={`/recruiter/jobs/${job.id}/applications`}
+                    className="rounded-lg bg-black px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800"
+                >
+                    Applications →
+                </Link>
+
+                <Link
                     href={`/recruiter/jobs/${job.id}`}
                     className="rounded-lg border px-4 py-2 text-sm font-medium hover:bg-zinc-50"
                 >

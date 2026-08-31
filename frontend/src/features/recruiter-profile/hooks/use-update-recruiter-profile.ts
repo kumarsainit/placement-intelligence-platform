@@ -24,6 +24,10 @@ export function useUpdateRecruiterProfile() {
             queryClient.invalidateQueries({
                 queryKey: RECRUITER_PROFILE_QUERY_KEY,
             });
+
+            queryClient.invalidateQueries({
+                queryKey: ["recruiter-dashboard"],
+            });
         },
     });
 }

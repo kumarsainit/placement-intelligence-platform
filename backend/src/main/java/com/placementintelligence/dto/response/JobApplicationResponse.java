@@ -12,6 +12,10 @@ public record JobApplicationResponse(
 
     String jobTitle,
 
+    Long companyId,
+
+    String companyName,
+
     Long applicantId,
 
     String applicantUsername,

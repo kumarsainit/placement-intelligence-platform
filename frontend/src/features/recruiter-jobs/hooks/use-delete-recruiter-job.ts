@@ -32,6 +32,14 @@ export function useDeleteRecruiterJob() {
                     jobId,
                 ],
             });
+
+            queryClient.invalidateQueries({
+                queryKey: ["recruiter-dashboard"],
+            });
+
+            queryClient.invalidateQueries({
+                queryKey: ["jobs"],
+            });
         },
     });
 }

@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, type SubmitHandler } from "react-hook-form";
 
@@ -28,6 +30,8 @@ export function ApplyJobForm({
     const {
         register,
         handleSubmit,
+        setValue,
+        getValues,
         formState: { errors },
     } = useForm<ApplicationFormValues>({
         resolver: zodResolver(applicationSchema),
@@ -37,16 +41,32 @@ export function ApplyJobForm({
         },
     });
 
+    const resumes = resumesQuery.data?.data;
+
+    useEffect(() => {
+        if (!resumes || resumes.length === 0) {
+            return;
+        }
+
+        if (getValues("resumeId") === 0) {
+            const primaryResume =
+                resumes.find((resume) => resume.isPrimary) ?? resumes[0];
+            if (primaryResume) {
+                setValue("resumeId", primaryResume.id, {
+                    shouldValidate: true,
+                });
+            }
+        }
+    }, [resumes, getValues, setValue]);
+
     const submitHandler: SubmitHandler<
         ApplicationFormValues
     > = (values) => {
         onSubmit(values);
     };
 
-    const resumes =
-        resumesQuery.data?.data ?? [];
-
-    const hasResumes = resumes.length > 0;
+    const resumeList = resumes ?? [];
+    const hasResumes = resumeList.length > 0;
 
     return (
         <form
@@ -98,6 +118,13 @@ export function ApplyJobForm({
                                 Please upload a resume before
                                 applying for this job.
                             </p>
+
+                            <Link
+                                href="/resume"
+                                className="mt-3 inline-block rounded-lg bg-black px-4 py-2 text-xs font-medium text-white hover:bg-zinc-800"
+                            >
+                                Upload Resume →
+                            </Link>
                         </div>
                     )}
 
@@ -122,7 +149,7 @@ export function ApplyJobForm({
                                 Select a resume
                             </option>
 
-                            {resumes.map((resume) => (
+                            {resumeList.map((resume) => (
                                 <option
                                     key={resume.id}
                                     value={resume.id}

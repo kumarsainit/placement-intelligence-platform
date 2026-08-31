@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
+import { AppErrorState } from "@/components/ui/error-3";
 import { ApplicationStatusBadge } from "@/features/applications/components/application-status-badge";
 import { useApplication } from "@/features/applications/hooks/use-application";
 import { getResumeFile } from "@/features/resume/api/resume-api";
@@ -70,25 +71,14 @@ export default function ApplicationDetailsPage() {
         return (
             <main className="min-h-screen bg-zinc-50 p-8">
                 <div className="mx-auto max-w-4xl">
-                    <div className="rounded-xl border border-red-200 bg-red-50 p-6">
-                        <h1 className="text-xl font-semibold text-red-700">
-                            Invalid Application
-                            </h1>
-
-                            <p className="mt-2 text-sm text-red-600">
-                                The requested application ID is
-                                invalid.
-                            </p>
-
-                            <Link
-                                href="/applications"
-                                className="mt-5 inline-block rounded-lg bg-black px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800"
-                            >
-                                Back to Applications
-                            </Link>
-                        </div>
-                    </div>
-                </main>
+                    <AppErrorState
+                        title="Invalid Application"
+                        message="The requested application ID is invalid."
+                        backHref="/applications"
+                        backLabel="Back to Applications"
+                    />
+                </div>
+            </main>
         );
     }
 
@@ -96,13 +86,14 @@ export default function ApplicationDetailsPage() {
         return (
             <main className="min-h-screen bg-zinc-50 p-8">
                 <div className="mx-auto max-w-4xl">
-                    <div className="rounded-xl border bg-white p-10 text-center shadow-sm">
-                        <p className="text-sm text-zinc-500">
+                    <div className="rounded-2xl border border-zinc-200 bg-white p-12 text-center shadow-sm">
+                        <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-zinc-900 border-t-transparent" />
+                        <p className="mt-4 text-sm font-medium text-zinc-500">
                             Loading application details...
-                            </p>
-                        </div>
+                        </p>
                     </div>
-                </main>
+                </div>
+            </main>
         );
     }
 
@@ -111,39 +102,17 @@ export default function ApplicationDetailsPage() {
         !applicationQuery.data?.data
     ) {
         return (
-                <main className="min-h-screen bg-zinc-50 p-8">
-                    <div className="mx-auto max-w-4xl">
-                        <div className="rounded-xl border border-red-200 bg-red-50 p-6">
-                            <h1 className="text-xl font-semibold text-red-700">
-                                Unable to load application
-                            </h1>
-
-                            <p className="mt-2 text-sm text-red-600">
-                                The requested application could not
-                                be found or loaded.
-                            </p>
-
-                            <div className="mt-5 flex gap-3">
-                                <Link
-                                    href="/applications"
-                                    className="rounded-lg bg-black px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800"
-                                >
-                                    Back to Applications
-                                </Link>
-
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        applicationQuery.refetch()
-                                    }
-                                    className="rounded-lg border bg-white px-4 py-2 text-sm font-medium hover:bg-zinc-50"
-                                >
-                                    Try Again
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </main>
+            <main className="min-h-screen bg-zinc-50 p-8">
+                <div className="mx-auto max-w-4xl">
+                    <AppErrorState
+                        title="Unable to load application"
+                        message="The requested application could not be found or loaded."
+                        onRetry={() => applicationQuery.refetch()}
+                        backHref="/applications"
+                        backLabel="Back to Applications"
+                    />
+                </div>
+            </main>
         );
     }
 
@@ -172,6 +141,12 @@ export default function ApplicationDetailsPage() {
                                         {application.jobTitle}
                                     </h1>
 
+                                    {application.companyName && (
+                                        <p className="mt-1 text-base font-medium text-zinc-700">
+                                            {application.companyName}
+                                        </p>
+                                    )}
+
                                     <p className="mt-2 text-sm text-zinc-500">
                                         Applied on{" "}
                                         {formatDate(
@@ -180,9 +155,18 @@ export default function ApplicationDetailsPage() {
                                     </p>
                                 </div>
 
-                                <ApplicationStatusBadge
-                                    status={application.status}
-                                />
+                                <div className="flex flex-col items-start gap-3 sm:items-end">
+                                    <ApplicationStatusBadge
+                                        status={application.status}
+                                    />
+
+                                    <Link
+                                        href={`/jobs/${application.jobId}`}
+                                        className="rounded-lg border bg-white px-3 py-1.5 text-xs font-medium hover:bg-zinc-50"
+                                    >
+                                        View Job Posting →
+                                    </Link>
+                                </div>
                             </div>
                         </header>
 
@@ -205,13 +189,30 @@ export default function ApplicationDetailsPage() {
 
                                     <div>
                                         <p className="text-sm text-zinc-500">
-                                            Job ID
+                                            Job
                                         </p>
 
                                         <p className="mt-1 font-medium">
-                                            #{application.jobId}
+                                            <Link
+                                                href={`/jobs/${application.jobId}`}
+                                                className="text-zinc-900 hover:underline"
+                                            >
+                                                {application.jobTitle} (#{application.jobId})
+                                            </Link>
                                         </p>
                                     </div>
+
+                                    {application.companyName && (
+                                        <div>
+                                            <p className="text-sm text-zinc-500">
+                                                Company
+                                            </p>
+
+                                            <p className="mt-1 font-medium">
+                                                {application.companyName}
+                                            </p>
+                                        </div>
+                                    )}
 
                                     <div>
                                         <p className="text-sm text-zinc-500">

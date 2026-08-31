@@ -50,4 +50,6 @@ public interface JobApplicationRepository
         Job job,
         ApplicationStatus status
     );
+
+    long countByStatus(ApplicationStatus status);
 }

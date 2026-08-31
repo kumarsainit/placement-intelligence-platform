@@ -17,6 +17,14 @@ public interface JobApplicationMapper {
         source = "job.title"
     )
     @Mapping(
+        target = "companyId",
+        source = "job.company.id"
+    )
+    @Mapping(
+        target = "companyName",
+        source = "job.company.name"
+    )
+    @Mapping(
         target = "applicantId",
         source = "applicant.id"
     )

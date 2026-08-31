@@ -12,6 +12,8 @@ export interface JobApplication {
     id: number;
     jobId: number;
     jobTitle: string;
+    companyId?: number;
+    companyName?: string;
     applicantId: number;
     applicantUsername: string;
     resumeId: number;

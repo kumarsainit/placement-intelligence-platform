@@ -36,6 +36,10 @@ export function useCreateRecruiterCompany() {
             queryClient.invalidateQueries({
                 queryKey: ["companies"],
             });
+
+            queryClient.invalidateQueries({
+                queryKey: ["recruiter-dashboard"],
+            });
         },
     });
 }

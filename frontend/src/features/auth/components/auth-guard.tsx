@@ -4,12 +4,13 @@ import type { ReactNode } from "react";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
+import type { UserRole } from "@/features/auth/api/user-api";
 import { useAuthStore } from "@/stores/auth-store";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 
 interface AuthGuardProps {
     children: ReactNode;
-    allowedRole?: "USER" | "RECRUITER";
+    allowedRole?: UserRole | UserRole[];
 }
 
 export function AuthGuard({
@@ -131,10 +132,36 @@ export function AuthGuard({
 }
 
 interface RoleGuardRedirectProps {
-    currentRole: "USER" | "RECRUITER";
-    allowedRole?: "USER" | "RECRUITER";
+    currentRole: UserRole;
+    allowedRole?: UserRole | UserRole[];
     router: ReturnType<typeof useRouter>;
     children: ReactNode;
+}
+
+function getRoleRedirectPath(role: UserRole): string {
+    switch (role) {
+        case "RECRUITER":
+            return "/recruiter/dashboard";
+        case "ADMIN":
+        case "SUPER_ADMIN":
+            return "/admin/dashboard";
+        case "USER":
+        default:
+            return "/dashboard";
+    }
+}
+
+function isRoleAllowed(
+    currentRole: UserRole,
+    allowedRole?: UserRole | UserRole[],
+): boolean {
+    if (!allowedRole) {
+        return true;
+    }
+    if (Array.isArray(allowedRole)) {
+        return allowedRole.includes(currentRole);
+    }
+    return currentRole === allowedRole;
 }
 
 function RoleGuardRedirect({
@@ -143,20 +170,15 @@ function RoleGuardRedirect({
                                router,
                                children,
                            }: RoleGuardRedirectProps) {
-    useEffect(() => {
-        if (
-            allowedRole &&
-            currentRole !== allowedRole
-        ) {
-            const redirectPath =
-                currentRole === "RECRUITER"
-                    ? "/recruiter/dashboard"
-                    : "/dashboard";
+    const isAllowed = isRoleAllowed(currentRole, allowedRole);
 
+    useEffect(() => {
+        if (!isAllowed) {
+            const redirectPath = getRoleRedirectPath(currentRole);
             router.replace(redirectPath);
         }
     }, [
-        allowedRole,
+        isAllowed,
         currentRole,
         router,
     ]);
@@ -165,10 +187,7 @@ function RoleGuardRedirect({
      * Role mismatch:
      * navigation is being handled by useEffect.
      */
-    if (
-        allowedRole &&
-        currentRole !== allowedRole
-    ) {
+    if (!isAllowed) {
         return null;
     }
 

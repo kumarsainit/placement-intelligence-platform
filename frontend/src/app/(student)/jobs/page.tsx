@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { CareerHeader } from "@/components/ui/career-3";
+import { AppErrorState } from "@/components/ui/error-3";
 import { JobList } from "@/features/jobs/components/job-list";
 import { JobPagination } from "@/features/jobs/components/job-pagination";
 import { JobSearchFilters } from "@/features/jobs/components/job-search-filters";
@@ -68,17 +70,11 @@ export default function JobsPage() {
         <main className="min-h-screen bg-zinc-50 p-6 sm:p-8">
             <div className="mx-auto max-w-6xl">
                 <div className="space-y-8">
-
-                    <div>
-                        <h1 className="text-3xl font-bold">
-                            Find Your Next Opportunity
-                        </h1>
-
-                        <p className="mt-2 text-sm text-zinc-600">
-                            Search and discover jobs that match
-                            your skills and career goals.
-                        </p>
-                    </div>
+                    <CareerHeader
+                        eyebrow="Placement Intelligence Jobs"
+                        heading="Discover Career Opportunities"
+                        subheading="Search and apply to open positions across verified partner companies that match your profile."
+                    />
 
                     <JobSearchFilters
                         companies={
@@ -89,41 +85,30 @@ export default function JobsPage() {
                     />
 
                     {jobsQuery.isLoading && (
-                        <div className="rounded-xl border bg-white p-10 text-center shadow-sm">
-                            <p className="text-sm text-zinc-500">
-                                Searching for jobs...
+                        <div className="rounded-2xl border border-zinc-200 bg-white p-12 text-center shadow-sm">
+                            <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-zinc-900 border-t-transparent" />
+                            <p className="mt-4 text-sm font-medium text-zinc-500">
+                                Searching available jobs...
                             </p>
                         </div>
                     )}
 
                     {jobsQuery.isError && (
-                        <div className="rounded-xl border border-red-200 bg-red-50 p-6">
-                            <h2 className="font-semibold text-red-700">
-                                Unable to load jobs
-                            </h2>
-
-                            <p className="mt-2 text-sm text-red-600">
-                                {jobsQuery.error?.message ??
-                                    "Something went wrong while loading jobs."}
-                            </p>
-
-                            <button
-                                type="button"
-                                onClick={() =>
-                                    jobsQuery.refetch()
-                                }
-                                className="mt-4 rounded-lg bg-black px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800"
-                            >
-                                Try Again
-                            </button>
-                        </div>
+                        <AppErrorState
+                            title="Unable to load job postings"
+                            message={
+                                jobsQuery.error?.message ??
+                                "Something went wrong while retrieving jobs. Please try again."
+                            }
+                            onRetry={() => jobsQuery.refetch()}
+                        />
                     )}
 
                     {jobsQuery.isSuccess && (
                         <>
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <h2 className="text-xl font-semibold">
+                                    <h2 className="text-xl font-bold tracking-tight text-zinc-950">
                                         Available Jobs
                                     </h2>
 

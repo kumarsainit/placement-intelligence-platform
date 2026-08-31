@@ -17,6 +17,7 @@ import com.placementintelligence.repository.UserProfileRepository;
 import com.placementintelligence.repository.UserRepository;
 import com.placementintelligence.security.JwtService;
 import com.placementintelligence.service.AuthService;
+import com.placementintelligence.service.OtpDeliveryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,6 +41,7 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final UserProfileRepository profileRepository;
     private final JwtService jwtService;
+    private final OtpDeliveryService otpDeliveryService;
 
     @Value("${app.otp.expiration-seconds:300}")
     private long otpExpirationSeconds = DEFAULT_OTP_EXPIRY_SECONDS;
@@ -62,6 +64,12 @@ public class AuthServiceImpl implements AuthService {
             .build();
 
         otpRepository.save(otpVerification);
+
+        otpDeliveryService.deliverOtp(
+            request.phoneNumber(),
+            generatedOtp,
+            otpExpirationSeconds
+        );
 
         return new SendOtpResponse(
             request.phoneNumber(),
