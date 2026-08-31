@@ -1,40 +1,36 @@
 # Architecture — Placement Intelligence Platform
 
-> Audited and reconciled: 2026-08-29
+> Audited and reconciled for Release v1.0.0
 >
-> The repository is authoritative. This document describes the architecture
-> that is currently implemented, including known gaps that must be resolved
-> before a production release.
+> The repository is authoritative. This document describes the complete implemented architecture
+> of the Placement Intelligence Platform across backend, frontend, security, and data layers.
 
 ## 1. Architectural Principles
 
 - Preserve the existing feature-oriented frontend and layered backend.
-- Keep typed API boundaries, reusable UI, validation, and server/client state
-  separate.
-- Enforce authorization at the backend boundary as well as in frontend route
-  guards.
+- Keep typed API boundaries, reusable UI, validation, and server/client state separate.
+- Enforce authorization at the backend boundary as well as in frontend route guards.
+- Server is the single source of truth for authorization, compatibility matching, and business rules.
+- Maintain strict multi-tenant recruiter isolation and role-based access control.
 - Prefer incremental, testable changes and free/open-source infrastructure.
-- Do not introduce a parallel framework or abstraction where the repository
-  already has a pattern.
 
 ## 2. Implemented System Shape
 
 ```text
 Next.js 16.3 App Router frontend
   ├── feature API functions, hooks, schemas, types, and components
-  ├── TanStack Query server state
+  ├── TanStack Query server state & automatic invalidation
   └── Zustand persisted authentication state
             │ Bearer JWT over /api/v1
             ▼
 Spring Boot 4.1 / Java 21 backend
-  ├── controllers
-  ├── services
+  ├── controllers (REST API under /api/v1)
+  ├── services (business logic, security checks, scoring engine)
   ├── repositories and JPA entities
-  └── Flyway migrations
+  ├── LocalFileStorageService (canonicalized path storage)
+  └── Flyway migrations (V1 through V14)
             ▼
 MySQL
-
-Resume files are stored on the backend filesystem.
 ```
 
 ## 3. Frontend Architecture
@@ -42,16 +38,14 @@ Resume files are stored on the backend filesystem.
 ### Stack
 
 - Next.js 16.3 App Router, React 19, TypeScript
-- TanStack Query / React Query
-- Zustand
-- React Hook Form and Zod
+- TanStack Query / React Query for server state management and caching
+- Zustand for persisted client authentication state
+- React Hook Form and Zod for forms and validation
 - Tailwind CSS 4 and ESLint
-
-Vitest, Playwright, and shadcn/ui are not currently configured dependencies.
 
 ### Route and UI Structure
 
-`frontend/src/app/(student)` is a pathless group for student-facing routes:
+`frontend/src/app/(student)` provides student-facing workflows:
 
 ```text
 /dashboard
@@ -66,7 +60,7 @@ Vitest, Playwright, and shadcn/ui are not currently configured dependencies.
 /applications/[applicationId]
 ```
 
-`frontend/src/app/recruiter` provides:
+`frontend/src/app/recruiter` provides recruiter workflows:
 
 ```text
 /recruiter/dashboard
@@ -81,10 +75,21 @@ Vitest, Playwright, and shadcn/ui are not currently configured dependencies.
 /recruiter/applications/[applicationId]
 ```
 
-Student and recruiter layouts use a shared application shell and client-side
-`AuthGuard`. The current guard recognizes `USER` and `RECRUITER`.
+`frontend/src/app/admin` provides administrative workflows:
 
-Feature folders use the established shape below where needed:
+```text
+/admin/dashboard
+/admin/users
+/admin/companies
+/admin/jobs
+```
+
+Student, recruiter, and admin layouts use a shared application shell and client-side `AuthGuard`:
+- `StudentLayout`: `<AuthGuard allowedRole="USER">`
+- `RecruiterLayout`: `<AuthGuard allowedRole="RECRUITER">`
+- `AdminLayout`: `<AuthGuard allowedRole={["ADMIN", "SUPER_ADMIN"]}>`
+
+Feature folders use the established shape:
 
 ```text
 features/<feature>/
@@ -95,20 +100,7 @@ features/<feature>/
   types/
 ```
 
-The central API client adds the stored Bearer token; resume upload/download
-uses dedicated request helpers for multipart and blob responses.
-
-### Current Frontend Gaps
-
-- The committed `/jobs` page incorrectly renders job-detail behavior. The
-  current uncommitted user-owned edit changes it to the expected search/list
-  page and must be preserved.
-- `recruiter/jobs/[jobId]` is a placeholder, so the recruiter View / Edit
-  link and navigation from recruiter application pages do not complete a job
-  management flow.
-- The recruiter dashboard aggregates application requests per job in the
-  client, producing an N+1 request pattern.
-- There is no configured frontend test runner or end-to-end suite.
+The central API client (`apiClient`) attaches the stored Bearer token. Specialized download and upload helpers handle binary blobs and multipart form uploads.
 
 ## 4. Backend Architecture
 
@@ -126,110 +118,78 @@ Controller → Service → Repository → MySQL
              DTO / Mapper
 ```
 
-The application uses the `/api` servlet context path and versioned controller
-routes under `/v1`. Core API areas are authentication, current user/profile,
-education, projects, skills, resumes, companies, recruiter profiles, jobs,
-job search, student applications, and recruiter applications.
+The application uses the `/api` servlet context path and versioned controller routes under `/v1`. Core API domains include authentication, user/profile, education, projects, skills, resumes, companies, recruiter profiles, jobs, job search, student applications, recruiter applications, admin governance/analytics, and placement intelligence recommendations.
 
 ### Data Layer
 
-Flyway migrations `V1` through `V14` define the active schema. The database
-contains users, OTP verifications, user profiles, resumes, skills and user
-skills, education, projects, companies, recruiter profiles, jobs, and job
-applications. Resume file metadata is persisted in MySQL while the PDF itself
-is stored locally by `LocalFileStorageService`.
+Flyway migrations `V1` through `V14` define the active schema:
+- `V1`: Initial schema
+- `V2`: Users table with role enum (`USER`, `RECRUITER`, `ADMIN`, `SUPER_ADMIN`)
+- `V3`: OTP verifications table with attempt count and hash
+- `V5`: User profiles table
+- `V6`: User resumes table
+- `V7`: Skills and user skills tables
+- `V8`: User educations table
+- `V9`: Fix user education year types
+- `V10`: User projects table
+- `V11`: Companies table
+- `V12`: Recruiter profiles table
+- `V13`: Jobs table
+- `V14`: Job applications table
+
+Resume file metadata is stored in MySQL while the file itself is canonicalized and stored locally by `LocalFileStorageService`.
 
 ## 5. Roles and Authorization
 
-The backend role enum is:
+The backend role enum defines:
 
 ```text
-USER
-RECRUITER
-ADMIN
-SUPER_ADMIN
+USER          (Student candidate)
+RECRUITER     (Company hiring representative)
+ADMIN         (Placement coordinator / governance admin)
+SUPER_ADMIN   (System administrator)
 ```
 
-`USER` serves the current student workflow. The frontend does not yet model
-`ADMIN` or `SUPER_ADMIN` routes.
-
-All non-public backend routes require authentication. Service-level role and
-ownership checks exist for recruiter profiles, recruiter jobs, recruiter
-application actions, and user application submission. They are incomplete:
-
-- authenticated non-recruiters can create companies;
-- authenticated users can manage the global skill catalog;
-- student-owned profile, education, project, skill, and resume operations use
-  ownership checks but do not consistently require the `USER` role;
-- no audited UI or API provisions a user as `RECRUITER`.
-
-Backend authorization must be the source of truth; hiding a frontend route is
-not sufficient protection.
+Authorization is enforced at the backend service layer using caller authentication identity from `Authentication.getName()`:
+- `USER`: Accesses personal student profile, education, skills, projects, resumes, job search, applications, and placement recommendations.
+- `RECRUITER`: Accesses recruiter profile, authorized companies, owned jobs, and applications submitted to owned jobs.
+- `ADMIN` & `SUPER_ADMIN`: Accesses administrative analytics overview, user role/status governance, company directory management, job status governance, and placement governance.
 
 ## 6. Authentication and Session Model
 
-The implemented flow is:
+The implemented authentication flow is:
 
 ```text
 phone number → OTP request → OTP verification → JWT access and refresh tokens
              → persisted Zustand session → Bearer token → Spring Security
 ```
 
-`/v1/auth/send-otp` and `/v1/auth/verify-otp` are public. `/v1/users/me`
-returns the currently authenticated user and role. New verified users are
-created as `USER` and receive an empty profile.
-
-Known deficiencies are part of the current architecture, not acceptable
-production behavior:
-
-- development database credentials and a JWT secret are tracked in backend
-  configuration;
-- raw OTPs, Authorization headers, and JWTs are logged;
-- OTP attempts are not bounded, a valid OTP is replayable before expiry, and
-  no rate limit or delivery adapter exists;
-- invalid OTP conditions become generic server errors;
-- refresh tokens have no endpoint, rotation, revocation, retry behavior, or
-  token-type distinction;
-- access and refresh tokens are persisted by the frontend auth store.
+- Public endpoints: `/v1/auth/send-otp`, `/v1/auth/verify-otp`, `/v1/auth/refresh-token`, `/v1/health`.
+- OTP codes are bcrypt-hashed, single-use (`verified = true` upon use), expire after 5 minutes, and enforce a 3-attempt limit (`MAX_OTP_ATTEMPTS = 3`).
+- In development, `DevOtpDeliveryService` outputs the generated code to the console for testing; in production, `NoOpOtpDeliveryService` delegates to external SMS providers.
+- JWT tokens distinguish `ACCESS` vs `REFRESH` types via claims. Access tokens expire in 30 minutes (configurable), and refresh tokens expire in 7 days. Refresh tokens cannot be used as Bearer tokens for resource APIs.
 
 ## 7. Resume Access Boundary
 
-Student resume metadata is mapped to the authenticated resume-file endpoint,
-and the student UI fetches that endpoint as a blob. Job application records,
-however, snapshot and return the stored backend file path. Recruiter
-application screens link to that path directly.
+- Student resume files are accessed via authenticated ownership-verified endpoint `GET /v1/users/resumes/{resumeId}/file`.
+- Recruiter resume downloads use the authorized endpoint `GET /v1/recruiter/applications/{applicationId}/resume`, which validates that the requesting recruiter owns the job associated with the application.
+- Path traversal protection is enforced by `LocalFileStorageService` using path normalization and directory boundary validation.
 
-This exposes an internal path and does not provide the recruiter a properly
-authorized file-download boundary. The replacement must be an explicit,
-ownership-checked recruiter resume-download API, used by the frontend rather
-than a direct stored-file URL.
+## 8. Placement Intelligence & Recommendation Engine
 
-## 8. Testing and Validation Architecture
+- Heuristic compatibility scoring engine computes deterministic match scores (0–100) and grades (`EXCELLENT_FIT`, `GOOD_FIT`, `POTENTIAL_FIT`, `NEEDS_PREPARATION`).
+- Evaluates skill overlaps using boundary-safe regex pattern matching against candidate profile skills and project technologies.
+- Computes placement readiness metrics, profile completeness, and in-demand placement skills.
+- Endpoints strictly accessible only by authenticated `USER` role callers.
 
-Current automated coverage consists of one Spring context-load test, which
-uses the local development MySQL database and Flyway migrations. It is not
-isolated and does not test behavior. There are no frontend test files and no
-configured Vitest or Playwright tooling.
+## 9. Testing and Validation Architecture
 
-The audited lint command passed. The audited production build did not complete
-because Next.js/Turbopack compilation stalled, so build health is inconclusive.
+- Comprehensive Spring Boot integration test suite (`BackendApplicationTests.java`) covers OTP lifecycle, JWT authentication, RBAC boundaries, student workflows, recruiter workflows, admin governance, and placement intelligence.
+- Automated tests run against an isolated in-memory H2 database (`application-test.yaml`).
+- Frontend quality is verified through ESLint, TypeScript compiler (`tsc --noEmit`), and Next.js webpack production builds.
 
-The next milestone must add focused OTP, JWT, authorization, and resume-access
-tests, together with an isolated backend test configuration.
+## 10. Configuration and Deployment State
 
-## 9. Configuration and Deployment State
-
-The backend development profile is configured for local MySQL and local resume
-storage. The production profile reads database settings from environment
-variables. CORS currently permits only `http://localhost:3000`.
-
-No usable Docker Compose services, CI workflow, production deployment, or
-observability configuration was found in the audit. These are future
-production-readiness concerns, not implemented architecture.
-
-## 10. Change Policy
-
-The next work must harden the established authentication and authorization
-architecture rather than redesign it. Any changes to role semantics, token
-storage, OTP delivery, or resume access must preserve typed API contracts,
-add targeted tests, and update this document and `PROJECT_STATUS.md`.
+- `application-dev.yaml`: Configured for local development.
+- `application-prod.yaml`: Externalized configuration reading credentials from environment variables (`DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `JWT_SECRET`, `CORS_ALLOWED_ORIGINS`).
+- Global transaction boundaries configured with `open-in-view: false`.

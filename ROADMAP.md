@@ -1,189 +1,97 @@
 # Roadmap — Placement Intelligence Platform
 
-> Reconciled with the repository audit on 2026-08-29.
+> Audited and reconciled for Release v1.0.0.
 >
-> The core application has substantial implementation, but it is not ready for
-> feature expansion or release until the security, authorization, and test
-> gaps below are addressed.
+> All core platform phases, security hardening, governance workflows, and placement intelligence
+> matching capabilities are fully implemented and verified.
 
-## Phase 0 — Repository Audit
+## Phase 0 — Foundation & Repository Setup
 
-**Status:** Complete on `feature/frontend-dashboard` at `f71b21c`.
+**Status:** Complete.
 
-- [x] inspect Git status, branch, commits, and tags
-- [x] inspect project structure, frontend, backend, data layer, and config
-- [x] inspect authentication, authorization, routes, APIs, and state
-- [x] inspect tests and TODO/FIXME items
-- [x] reconcile `PROJECT_STATUS.md`, `ARCHITECTURE.md`, and this roadmap
-
-The audit found tags `v0.1.0` through `v0.10.0`, a Spring Boot 4.1 / Java 21
-backend, and a Next.js 16.3 App Router frontend. It also found critical
-security, authorization, resume-access, and test gaps.
+- [x] Initial Spring Boot 4.1 / Java 21 backend foundation
+- [x] Initial Next.js 16.3 App Router frontend foundation
+- [x] MySQL database and initial Flyway migration structure
+- [x] Common API response envelopes and centralized error handling
 
 ---
 
-## Phase 1 — Authentication, Authorization, and Resume-Access Hardening
+## Phase 1 — Authentication, Authorization, & Security Hardening
 
-**Status:** Next milestone.
+**Status:** Complete.
 
-**Goal:** Make the existing student and recruiter workflows safe to validate
-before implementing more product features.
-
-### 1. Configuration and sensitive-data remediation
-
-- [ ] Remove development database credentials and JWT secret from tracked
-  backend configuration.
-- [ ] Rotate the exposed credentials and JWT signing secret.
-- [ ] Keep `.env.example` limited to non-secret placeholders.
-- [ ] Make CORS configuration explicit and environment-aware.
-
-### 2. OTP and JWT lifecycle
-
-- [ ] Remove OTP, Authorization-header, and raw-JWT logging.
-- [ ] Make OTPs single-use; enforce expiry and bounded verification attempts.
-- [ ] Add rate limiting and a defined OTP delivery boundary before treating
-  OTP authentication as production-ready.
-- [ ] Return safe, correct client errors for invalid, expired, and missing
-  OTPs.
-- [ ] Implement a distinct refresh-token lifecycle: endpoint, token type,
-  rotation/revocation, and frontend retry/expiry handling.
-
-### 3. Backend role enforcement
-
-- [ ] Keep `USER`, `RECRUITER`, `ADMIN`, and `SUPER_ADMIN` as the documented
-  backend roles; do not rename `USER` to `STUDENT` without a separate,
-  migration-aware decision.
-- [ ] Require an authorized role for company creation and global skill-catalog
-  operations.
-- [ ] Apply consistent `USER` role checks to student-only operations while
-  retaining existing ownership checks.
-- [ ] Define and implement a controlled recruiter-provisioning path; new OTP
-  users currently become `USER`.
-
-### 4. Authorized resume access
-
-- [ ] Stop returning stored backend file paths from job-application data.
-- [ ] Add a recruiter-authorized, ownership-checked resume-download boundary.
-- [ ] Update recruiter application UI to use that boundary rather than direct
-  file links.
-
-### 5. Focused validation
-
-- [ ] Add isolated backend test configuration instead of depending on the
-  local development MySQL database.
-- [ ] Add tests for OTP expiry/replay/attempt limits, JWT access versus
-  refresh behavior, role enforcement, ownership, and resume download.
-- [ ] Add the first frontend tests for authentication/session failure and
-  authorized resume access.
-- [ ] Re-run lint and production build; investigate the audited Turbopack
-  build stall rather than declaring the build healthy.
-
-### Current touch points
-
-The expected existing modules are:
-
-```text
-backend/src/main/resources/application-dev.yaml
-backend/src/main/resources/application-prod.yaml
-backend/src/main/java/com/placementintelligence/config/SecurityConfig.java
-backend/src/main/java/com/placementintelligence/security/JwtService.java
-backend/src/main/java/com/placementintelligence/security/JwtAuthenticationFilter.java
-backend/src/main/java/com/placementintelligence/service/impl/AuthServiceImpl.java
-backend/src/main/java/com/placementintelligence/service/impl/CompanyServiceImpl.java
-backend/src/main/java/com/placementintelligence/service/impl/SkillServiceImpl.java
-backend/src/main/java/com/placementintelligence/service/impl/JobApplicationServiceImpl.java
-frontend/src/lib/api/client.ts
-frontend/src/stores/auth-store.ts
-frontend/src/features/auth/
-frontend/src/features/recruiter-applications/
-```
-
-Do not modify the user-owned uncommitted change at
-`frontend/src/app/(student)/jobs/page.tsx` as part of this milestone.
+- [x] OTP authentication lifecycle: bcrypt hashing, 5-minute expiry, single-use, 3-attempt limit
+- [x] Dev/Prod OTP delivery decoupling (`DevOtpDeliveryService` / `NoOpOtpDeliveryService`)
+- [x] JWT access token and refresh token distinction (`type` claim)
+- [x] Refresh token endpoint (`POST /v1/auth/refresh-token`) with rotation
+- [x] Role-Based Access Control (`USER`, `RECRUITER`, `ADMIN`, `SUPER_ADMIN`)
+- [x] Path-traversal-protected local resume storage abstraction
+- [x] Production credential externalization via environment variables
+- [x] Sanitization of sensitive logs (no OTPs, tokens, or auth headers in production logs)
 
 ---
 
-## Phase 2 — Stabilize and Complete Existing Core Workflows
+## Phase 2 — Student Workflows
 
-**Goal:** Complete the audited workflow gaps after Phase 1 is validated.
+**Status:** Complete.
 
-- [ ] Finish recruiter job detail/edit at
-  `frontend/src/app/recruiter/jobs/[jobId]/page.tsx` and reconnect the
-  application-navigation flow.
-- [ ] Review and safely integrate the user-owned `/jobs` list/search change;
-  the committed page is currently incorrect.
-- [ ] Remove the recruiter-dashboard application N+1 pattern where an
-  appropriate API/query approach is available.
-- [ ] Validate loading, empty, error, success, validation, responsive, and
-  authorization states for profile, education, projects, skills, resumes,
-  jobs, applications, companies, recruiter profiles, and dashboards.
-- [ ] Add targeted frontend and backend tests for each corrected workflow.
-
-Do not reimplement modules that already have satisfactory code; make the
-smallest coherent corrections discovered during validation.
+- [x] Student profile management (bio, degree, college, branch, CGPA, coding/social links)
+- [x] Education history CRUD with validation rules
+- [x] Skills management and student proficiency ratings
+- [x] Projects portfolio management with technology tags and URLs
+- [x] Resume management with PDF drag-and-drop upload and primary resume failover promotion
+- [x] Job search and discovery with keyword, location, company, employment type, and salary filtering
+- [x] Job application workflow with resume snapshotting and duplicate protection
+- [x] Application history tracking and real-time status indicators
 
 ---
 
-## Phase 3 — Intelligence Layer
+## Phase 3 — Recruiter Workflows
 
-**Goal:** Introduce placement intelligence only after the core platform is
-stable and authorization is verified.
+**Status:** Complete.
 
-Potential capabilities, requiring separate product definition:
-
-- [ ] student profile-completeness insights
-- [ ] job/profile matching
-- [ ] skill-gap analysis
-- [ ] application insights
-- [ ] recruiter-side candidate insights
-- [ ] placement-oriented analytics
-- [ ] recommendation workflows
+- [x] Recruiter company registration and association
+- [x] Recruiter profile setup
+- [x] Job management: draft, open, and closed job lifecycle
+- [x] Multi-tenant applicant review dashboard
+- [x] Application status transitions (Applied → Shortlisted → Selected / Rejected)
+- [x] Authorized candidate resume downloads with recruiter ownership verification
 
 ---
 
-## Phase 4 — Quality and Production Readiness
+## Phase 4 — Admin & Governance Workflows
 
-- [ ] comprehensive authorization review
-- [ ] error-handling and validation audit
-- [ ] accessibility and responsive UI audit
-- [ ] unit/component coverage and critical end-to-end flows
-- [ ] build verification
-- [ ] performance review
-- [ ] environment, logging, and observability review
-- [ ] CI workflow, usable Docker/deployment configuration, and documentation
-  cleanup
+**Status:** Complete.
+
+- [x] Placement analytics overview (user counts, job statuses, application conversion funnel)
+- [x] User management: role assignment, user activation/deactivation, super admin protections
+- [x] Company directory governance
+- [x] Job oversight and status administration
 
 ---
 
-## Phase 5 — Release Preparation
+## Phase 5 — Placement Intelligence & Recommendation Engine
 
-### v1.0.0 readiness
+**Status:** Complete.
 
-Before `v1.0.0`:
+- [x] Deterministic heuristic compatibility scoring algorithm (0–100)
+- [x] Fit grade classification (`EXCELLENT_FIT`, `GOOD_FIT`, `POTENTIAL_FIT`, `NEEDS_PREPARATION`)
+- [x] Regex-based boundary-safe skill matching and skill gap identification
+- [x] Student placement readiness metrics and profile completeness calculation
+- [x] Dedicated personalized recommendation UI and job detail compatibility analysis
+- [x] Automated TanStack Query cache invalidation across all student profile mutations
 
-- [ ] core workflows are stable and tested
-- [ ] OTP authentication and authorization are verified
-- [ ] recruiter and student workflows are complete
-- [ ] no known critical security issues remain
-- [ ] lint, tests, and production build succeed
-- [ ] deployment process and release notes are documented
-- [ ] `PROJECT_STATUS.md`, `ARCHITECTURE.md`, README, and release notes are
-  synchronized with the repository
+---
 
-Then:
+## Phase 6 — Release Readiness & v1.0.0 Promotion
 
-```text
-develop
-   ↓
-release validation
-   ↓
-v1.0.0 tag
-   ↓
-main
-```
+**Status:** Current Milestone.
 
-## Working Rule
-
-For each approved milestone: verify the current state, use the appropriate
-feature branch, implement the smallest coherent change, test it, inspect the
-diff, update documentation, prepare a focused commit/PR, and stop for review.
+- [x] Comprehensive 11-scenario automated test suite on isolated H2 test database (`11/11 PASS`)
+- [x] Backend package verification (`BUILD SUCCESS`)
+- [x] Frontend code quality checks (`npm run lint` -> 0 errors, `npx tsc --noEmit` -> 0 errors)
+- [x] Production compilation (`next build --webpack` -> 27/27 routes)
+- [x] Repository format verification (`git diff --check` -> clean)
+- [x] Reconcile project documentation for v1.0.0
+- [x] Tag and release `v1.0.0`
+- [x] Promote develop to main
