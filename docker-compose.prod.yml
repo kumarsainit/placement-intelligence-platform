@@ -1,0 +1,86 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: placement_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-placement_intelligence}
+      MYSQL_USER: ${MYSQL_USER:-placement_app}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-PlacementProdPass123!}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-PlacementRootPass123!}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - placement_network
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$${MYSQL_ROOT_PASSWORD:-PlacementRootPass123!} --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: placement-intelligence-backend:1.0.0
+    container_name: placement_backend
+    restart: unless-stopped
+    ports:
+      - "${SERVER_PORT:-8080}:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SERVER_PORT: 8080
+      DB_URL: ${DB_URL:-jdbc:mysql://mysql:3306/placement_intelligence?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
+      DB_USERNAME: ${DB_USERNAME:-placement_app}
+      DB_PASSWORD: ${DB_PASSWORD:-PlacementProdPass123!}
+      JWT_SECRET: ${JWT_SECRET:-6nX9QvK2Lm8PzR4YhW7JcB5DsTfG1UaE9xVrM3NpQsLdH8Kz}
+      JWT_ACCESS_TOKEN_EXPIRATION: ${JWT_ACCESS_TOKEN_EXPIRATION:-1800000}
+      JWT_REFRESH_TOKEN_EXPIRATION: ${JWT_REFRESH_TOKEN_EXPIRATION:-604800000}
+      OTP_EXPIRATION_SECONDS: ${OTP_EXPIRATION_SECONDS:-300}
+      RESUME_STORAGE_DIR: /app/uploads/resumes
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000}
+    volumes:
+      - resume_data:/app/uploads/resumes
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - placement_network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8080/api/v1/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:8080/api}
+    image: placement-intelligence-frontend:1.0.0
+    container_name: placement_frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      HOSTNAME: "0.0.0.0"
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:8080/api}
+    depends_on:
+      - backend
+    networks:
+      - placement_network
+
+volumes:
+  mysql_data:
+    name: placement_mysql_data
+  resume_data:
+    name: placement_resume_data
+
+networks:
+  placement_network:
+    name: placement_internal_network
+    driver: bridge
