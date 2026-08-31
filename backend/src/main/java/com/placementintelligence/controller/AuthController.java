@@ -2,6 +2,7 @@ package com.placementintelligence.controller;
 
 import com.placementintelligence.common.response.ApiResponse;
 import com.placementintelligence.common.response.ApiResponseFactory;
+import com.placementintelligence.dto.request.RefreshTokenRequest;
 import com.placementintelligence.dto.request.SendOtpRequest;
 import com.placementintelligence.dto.request.VerifyOtpRequest;
 import com.placementintelligence.dto.response.LoginResponse;
@@ -45,6 +46,21 @@ public class AuthController {
         return ApiResponseFactory.success(
             response,
             "OTP verified successfully",
+            httpRequest
+        );
+    }
+
+    @PostMapping("/refresh")
+    public ApiResponse<LoginResponse> refresh(
+        @Valid @RequestBody RefreshTokenRequest request,
+        HttpServletRequest httpRequest
+    ) {
+
+        LoginResponse response = authService.refreshToken(request);
+
+        return ApiResponseFactory.success(
+            response,
+            "Token refreshed successfully",
             httpRequest
         );
     }

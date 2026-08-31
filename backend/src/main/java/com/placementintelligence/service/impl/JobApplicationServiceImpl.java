@@ -40,6 +40,7 @@ public class JobApplicationServiceImpl
     private final UserResumeRepository resumeRepository;
     private final JobApplicationRepository applicationRepository;
     private final RecruiterProfileRepository recruiterProfileRepository;
+    private final com.placementintelligence.service.FileStorageService fileStorageService;
     private final JobApplicationMapper mapper;
 
     @Override
@@ -160,6 +161,21 @@ public class JobApplicationServiceImpl
 
     @Override
     @Transactional(readOnly = true)
+    public List<JobApplicationResponse> getAllApplicationsForRecruiter(
+        String username) {
+
+        RecruiterProfile recruiter =
+            getActiveRecruiterProfile(username);
+
+        return applicationRepository
+            .findByJobRecruiterOrderByAppliedAtDesc(recruiter)
+            .stream()
+            .map(mapper::toResponse)
+            .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public JobApplicationResponse getApplicationByIdForRecruiter(
         String username,
         Long applicationId) {
@@ -226,6 +242,40 @@ public class JobApplicationServiceImpl
         return mapper.toResponse(application);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public org.springframework.core.io.Resource getApplicationResumeForRecruiter(
+        String username,
+        Long applicationId) {
+
+        RecruiterProfile recruiter =
+            getActiveRecruiterProfile(username);
+
+        JobApplication application =
+            applicationRepository.findById(applicationId)
+                .orElseThrow(() ->
+                    new ResourceNotFoundException(
+                        "Application not found"
+                    )
+                );
+
+        verifyRecruiterJobOwnership(
+            application.getJob(),
+            recruiter
+        );
+
+        if (application.getResumeFileUrl() == null || application.getResumeFileUrl().isBlank()) {
+            throw new ResourceNotFoundException("Resume file not found for this application");
+        }
+
+        java.nio.file.Path filePath =
+            fileStorageService.getResume(
+                application.getResumeFileUrl()
+            );
+
+        return new org.springframework.core.io.FileSystemResource(filePath);
+    }
+
     private User getActiveApplicant(
         String username) {
 
@@ -238,13 +288,13 @@ public class JobApplicationServiceImpl
             );
 
         if (user.getRole() != UserRole.USER) {
-            throw new UnauthorizedException(
+            throw new org.springframework.security.access.AccessDeniedException(
                 "Only users can apply for jobs"
             );
         }
 
         if (!Boolean.TRUE.equals(user.getIsActive())) {
-            throw new UnauthorizedException(
+            throw new org.springframework.security.access.AccessDeniedException(
                 "User account is inactive"
             );
         }
@@ -264,13 +314,13 @@ public class JobApplicationServiceImpl
             );
 
         if (user.getRole() != UserRole.RECRUITER) {
-            throw new UnauthorizedException(
+            throw new org.springframework.security.access.AccessDeniedException(
                 "Only recruiters can manage job applications"
             );
         }
 
         if (!Boolean.TRUE.equals(user.getIsActive())) {
-            throw new UnauthorizedException(
+            throw new org.springframework.security.access.AccessDeniedException(
                 "User account is inactive"
             );
         }
@@ -330,7 +380,7 @@ public class JobApplicationServiceImpl
         if (!job.getRecruiter().getId()
             .equals(recruiter.getId())) {
 
-            throw new UnauthorizedException(
+            throw new org.springframework.security.access.AccessDeniedException(
                 "You are not authorized to manage this job application"
             );
         }

@@ -28,6 +28,10 @@ public interface JobApplicationMapper {
         target = "resumeId",
         source = "resume.id"
     )
+    @Mapping(
+        target = "resumeFileUrl",
+        ignore = true
+    )
     JobApplicationResponse toResponse(
         JobApplication application
     );

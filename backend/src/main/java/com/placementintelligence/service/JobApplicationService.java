@@ -28,6 +28,10 @@ public interface JobApplicationService {
         Long jobId
     );
 
+    List<JobApplicationResponse> getAllApplicationsForRecruiter(
+        String username
+    );
+
     JobApplicationResponse getApplicationByIdForRecruiter(
         String username,
         Long applicationId
@@ -37,5 +41,10 @@ public interface JobApplicationService {
         String username,
         Long applicationId,
         UpdateApplicationStatusRequest request
+    );
+
+    org.springframework.core.io.Resource getApplicationResumeForRecruiter(
+        String username,
+        Long applicationId
     );
 }

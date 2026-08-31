@@ -24,3 +24,13 @@ export async function verifyOtp(
     body: request,
   });
 }
+
+export async function refreshAuthToken(
+  refreshToken: string,
+): Promise<ApiResponse<LoginResponse>> {
+  return apiClient<LoginResponse>("/v1/auth/refresh", {
+    method: "POST",
+    body: { refreshToken },
+    skipAuth: true,
+  });
+}

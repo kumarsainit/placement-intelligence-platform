@@ -21,11 +21,12 @@ public class SkillController {
 
     @PostMapping
     public ApiResponse<SkillResponse> createSkill(
+        org.springframework.security.core.Authentication authentication,
         @Valid @RequestBody CreateSkillRequest request,
         HttpServletRequest httpRequest) {
 
         SkillResponse response =
-            skillService.createSkill(request);
+            skillService.createSkill(authentication.getName(), request);
 
         return ApiResponseFactory.success(
             response,
@@ -65,12 +66,14 @@ public class SkillController {
 
     @PutMapping("/{skillId}")
     public ApiResponse<SkillResponse> updateSkill(
+        org.springframework.security.core.Authentication authentication,
         @PathVariable Long skillId,
         @Valid @RequestBody CreateSkillRequest request,
         HttpServletRequest httpRequest) {
 
         SkillResponse response =
             skillService.updateSkill(
+                authentication.getName(),
                 skillId,
                 request
             );
@@ -84,10 +87,11 @@ public class SkillController {
 
     @DeleteMapping("/{skillId}")
     public ApiResponse<Void> deleteSkill(
+        org.springframework.security.core.Authentication authentication,
         @PathVariable Long skillId,
         HttpServletRequest httpRequest) {
 
-        skillService.deleteSkill(skillId);
+        skillService.deleteSkill(authentication.getName(), skillId);
 
         return ApiResponseFactory.success(
             null,

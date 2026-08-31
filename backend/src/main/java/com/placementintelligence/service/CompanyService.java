@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface CompanyService {
 
-    CompanyResponse createCompany(CreateCompanyRequest request);
+    CompanyResponse createCompany(String username, CreateCompanyRequest request);
 
     List<CompanyResponse> getAllActiveCompanies();
 
