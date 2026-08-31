@@ -30,7 +30,7 @@ export default function RecruiterJobsPage() {
                     <header className="flex flex-col gap-4 border-b pb-6 sm:flex-row sm:items-end sm:justify-between">
                         <div>
                             <Link
-                                href="/dashboard"
+                                href="/recruiter/dashboard"
                                 className="text-sm font-medium hover:underline"
                             >
                                 ← Dashboard

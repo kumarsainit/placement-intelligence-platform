@@ -31,29 +31,18 @@ export default function AuthPage() {
 
     const handleVerified = async () => {
         try {
-            console.log("1. OTP verified, starting role lookup");
-
             setIsRedirecting(true);
 
-            console.log("2. Calling GET /v1/users/me");
-
             const response = await getCurrentUser();
-
-            console.log("3. Current user response:", response);
-
             const role = response.data.role;
-
-            console.log("4. Detected role:", role);
 
             setRole(role);
 
             if (role === "RECRUITER") {
-                console.log("5. Redirecting recruiter");
                 router.replace("/recruiter/dashboard");
                 return;
             }
 
-            console.log("5. Redirecting student");
             router.replace("/dashboard");
         } catch (error) {
             console.error(

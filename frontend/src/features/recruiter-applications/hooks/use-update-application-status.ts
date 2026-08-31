@@ -46,6 +46,13 @@ export function useUpdateApplicationStatus() {
                     application.jobId,
                 ],
             });
+
+            queryClient.invalidateQueries({
+                queryKey: [
+                    "recruiter-dashboard",
+                    "applications",
+                ],
+            });
         },
     });
 }
