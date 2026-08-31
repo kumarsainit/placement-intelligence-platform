@@ -1351,4 +1351,463 @@ class BackendApplicationTests {
         assertTrue(jobControllerResponse.success());
         assertEquals("Admin jobs fetched successfully", jobControllerResponse.message());
     }
+
+    @Autowired
+    private com.placementintelligence.service.PlacementIntelligenceService placementIntelligenceService;
+
+    @Autowired
+    private com.placementintelligence.controller.PlacementIntelligenceController placementIntelligenceController;
+
+    @Autowired
+    private com.placementintelligence.repository.UserProfileRepository userProfileRepository;
+
+    @Autowired
+    private com.placementintelligence.repository.UserEducationRepository userEducationRepository;
+
+    @Autowired
+    private com.placementintelligence.repository.UserSkillRepository userSkillRepository;
+
+    @Autowired
+    private com.placementintelligence.repository.SkillRepository skillRepository;
+
+    @Autowired
+    private com.placementintelligence.repository.UserProjectRepository userProjectRepository;
+
+    @Test
+    void testPlacementIntelligenceWorkflow() {
+        // 1. Setup users (Student, Recruiter, Admin, Super Admin, Inactive Student)
+        var student = userRepository.save(
+            com.placementintelligence.entity.User.builder()
+                .username("pi_student")
+                .phoneNumber("9977001101")
+                .role(com.placementintelligence.common.enums.UserRole.USER)
+                .isActive(true)
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .build()
+        );
+
+        var recruiterUser = userRepository.save(
+            com.placementintelligence.entity.User.builder()
+                .username("pi_recruiter")
+                .phoneNumber("9977001102")
+                .role(com.placementintelligence.common.enums.UserRole.RECRUITER)
+                .isActive(true)
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .build()
+        );
+
+        var admin = userRepository.save(
+            com.placementintelligence.entity.User.builder()
+                .username("pi_admin")
+                .phoneNumber("9977001103")
+                .role(com.placementintelligence.common.enums.UserRole.ADMIN)
+                .isActive(true)
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .build()
+        );
+
+        var superAdmin = userRepository.save(
+            com.placementintelligence.entity.User.builder()
+                .username("pi_superadmin")
+                .phoneNumber("9977001104")
+                .role(com.placementintelligence.common.enums.UserRole.SUPER_ADMIN)
+                .isActive(true)
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .build()
+        );
+
+        var inactiveStudent = userRepository.save(
+            com.placementintelligence.entity.User.builder()
+                .username("pi_inactive_student")
+                .phoneNumber("9977001105")
+                .role(com.placementintelligence.common.enums.UserRole.USER)
+                .isActive(false)
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .build()
+        );
+
+        // 2. Setup Skills Catalog
+        var javaSkill = skillRepository.findByNameIgnoreCase("Java")
+            .orElseGet(() -> skillRepository.save(
+                com.placementintelligence.entity.Skill.builder()
+                    .name("Java")
+                    .category("Programming")
+                    .isActive(true)
+                    .createdAt(Instant.now())
+                    .updatedAt(Instant.now())
+                    .build()
+            ));
+
+        var springBootSkill = skillRepository.findByNameIgnoreCase("Spring Boot")
+            .orElseGet(() -> skillRepository.save(
+                com.placementintelligence.entity.Skill.builder()
+                    .name("Spring Boot")
+                    .category("Framework")
+                    .isActive(true)
+                    .createdAt(Instant.now())
+                    .updatedAt(Instant.now())
+                    .build()
+            ));
+
+        var reactSkill = skillRepository.findByNameIgnoreCase("React")
+            .orElseGet(() -> skillRepository.save(
+                com.placementintelligence.entity.Skill.builder()
+                    .name("React")
+                    .category("Frontend")
+                    .isActive(true)
+                    .createdAt(Instant.now())
+                    .updatedAt(Instant.now())
+                    .build()
+            ));
+
+        var kubernetesSkill = skillRepository.findByNameIgnoreCase("Kubernetes")
+            .orElseGet(() -> skillRepository.save(
+                com.placementintelligence.entity.Skill.builder()
+                    .name("Kubernetes")
+                    .category("DevOps")
+                    .isActive(true)
+                    .createdAt(Instant.now())
+                    .updatedAt(Instant.now())
+                    .build()
+            ));
+
+        // 3. Setup Student Profile, Education, Skills, Projects, Resume
+        userProfileRepository.save(
+            com.placementintelligence.entity.UserProfile.builder()
+                .user(student)
+                .fullName("Placement Intelligence Student")
+                .college("National Institute of Technology")
+                .degree("B.Tech")
+                .branch("Computer Science")
+                .graduationYear(2026)
+                .cgpa(new java.math.BigDecimal("8.80"))
+                .bio("Full stack software developer with cloud experience")
+                .githubUrl("https://github.com/pistudent")
+                .linkedinUrl("https://linkedin.com/in/pistudent")
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .build()
+        );
+
+        userEducationRepository.save(
+            com.placementintelligence.entity.UserEducation.builder()
+                .user(student)
+                .educationLevel(com.placementintelligence.entity.EducationLevel.BACHELOR)
+                .institution("NIT")
+                .degree("B.Tech")
+                .fieldOfStudy("Computer Science")
+                .cgpa(new java.math.BigDecimal("8.80"))
+                .startYear(2022)
+                .endYear(2026)
+                .currentlyPursuing(true)
+                .build()
+        );
+
+        userSkillRepository.save(
+            com.placementintelligence.entity.UserSkill.builder()
+                .user(student)
+                .skill(javaSkill)
+                .proficiency("ADVANCED")
+                .yearsOfExperience(new java.math.BigDecimal("2.00"))
+                .build()
+        );
+
+        userSkillRepository.save(
+            com.placementintelligence.entity.UserSkill.builder()
+                .user(student)
+                .skill(springBootSkill)
+                .proficiency("INTERMEDIATE")
+                .yearsOfExperience(new java.math.BigDecimal("1.50"))
+                .build()
+        );
+
+        userSkillRepository.save(
+            com.placementintelligence.entity.UserSkill.builder()
+                .user(student)
+                .skill(reactSkill)
+                .proficiency("INTERMEDIATE")
+                .yearsOfExperience(new java.math.BigDecimal("1.00"))
+                .build()
+        );
+
+        userProjectRepository.save(
+            com.placementintelligence.entity.UserProject.builder()
+                .user(student)
+                .title("Smart Placement Engine")
+                .description("Automated matching algorithms for students and companies")
+                .technologies("Spring Boot, React, PostgreSQL, Docker")
+                .currentlyWorking(false)
+                .build()
+        );
+
+        var primaryResume = userResumeRepository.save(
+            com.placementintelligence.entity.UserResume.builder()
+                .user(student)
+                .fileName("pi_resume.pdf")
+                .fileUrl("storage/resumes/pi_resume.pdf")
+                .fileType("application/pdf")
+                .fileSize(204800L)
+                .isPrimary(true)
+                .uploadedAt(Instant.now())
+                .updatedAt(Instant.now())
+                .build()
+        );
+
+        // 4. Setup Companies
+        var activeCompany = companyRepository.save(
+            com.placementintelligence.entity.Company.builder()
+                .name("Alpha Intelligence Corp")
+                .industry("Artificial Intelligence")
+                .location("Bengaluru")
+                .website("https://alpha-ai.example.com")
+                .isActive(true)
+                .build()
+        );
+
+        var inactiveCompany = companyRepository.save(
+            com.placementintelligence.entity.Company.builder()
+                .name("Legacy Inactive Corp")
+                .industry("Legacy Systems")
+                .location("Pune")
+                .website("https://legacy.example.com")
+                .isActive(false)
+                .build()
+        );
+
+        var recruiterProfile = recruiterProfileRepository.save(
+            com.placementintelligence.entity.RecruiterProfile.builder()
+                .user(recruiterUser)
+                .company(activeCompany)
+                .designation("Staff Talent Partner")
+                .department("Engineering")
+                .build()
+        );
+
+        // 5. Setup Jobs (Eligible & Ineligible variants)
+        var highMatchJob = jobRepository.save(
+            com.placementintelligence.entity.Job.builder()
+                .company(activeCompany)
+                .recruiter(recruiterProfile)
+                .title("Java & Spring Boot Engineer")
+                .description("Seeking B.Tech Computer Science candidates skilled in Java, Spring Boot, React, and Kubernetes.")
+                .location("Bengaluru")
+                .employmentType(com.placementintelligence.common.enums.EmploymentType.FULL_TIME)
+                .experienceLevel(com.placementintelligence.common.enums.ExperienceLevel.ENTRY_LEVEL)
+                .openings(5)
+                .applicationDeadline(java.time.LocalDate.now().plusDays(30))
+                .status(com.placementintelligence.common.enums.JobStatus.OPEN)
+                .build()
+        );
+
+        var moderateMatchJob = jobRepository.save(
+            com.placementintelligence.entity.Job.builder()
+                .company(activeCompany)
+                .recruiter(recruiterProfile)
+                .title("Backend System Developer")
+                .description("Looking for engineers with Docker and cloud background.")
+                .location("Hyderabad")
+                .employmentType(com.placementintelligence.common.enums.EmploymentType.FULL_TIME)
+                .experienceLevel(com.placementintelligence.common.enums.ExperienceLevel.ENTRY_LEVEL)
+                .openings(2)
+                .applicationDeadline(java.time.LocalDate.now().plusDays(15))
+                .status(com.placementintelligence.common.enums.JobStatus.OPEN)
+                .build()
+        );
+
+        var closedJob = jobRepository.save(
+            com.placementintelligence.entity.Job.builder()
+                .company(activeCompany)
+                .recruiter(recruiterProfile)
+                .title("Java Architect")
+                .description("Java and Spring Boot architect")
+                .location("Bengaluru")
+                .employmentType(com.placementintelligence.common.enums.EmploymentType.FULL_TIME)
+                .experienceLevel(com.placementintelligence.common.enums.ExperienceLevel.SENIOR_LEVEL)
+                .openings(1)
+                .applicationDeadline(java.time.LocalDate.now().plusDays(10))
+                .status(com.placementintelligence.common.enums.JobStatus.CLOSED)
+                .build()
+        );
+
+        var expiredJob = jobRepository.save(
+            com.placementintelligence.entity.Job.builder()
+                .company(activeCompany)
+                .recruiter(recruiterProfile)
+                .title("Spring Developer Expired")
+                .description("Java developer")
+                .location("Bengaluru")
+                .employmentType(com.placementintelligence.common.enums.EmploymentType.FULL_TIME)
+                .experienceLevel(com.placementintelligence.common.enums.ExperienceLevel.ENTRY_LEVEL)
+                .openings(3)
+                .applicationDeadline(java.time.LocalDate.now().minusDays(2))
+                .status(com.placementintelligence.common.enums.JobStatus.OPEN)
+                .build()
+        );
+
+        var zeroOpeningsJob = jobRepository.save(
+            com.placementintelligence.entity.Job.builder()
+                .company(activeCompany)
+                .recruiter(recruiterProfile)
+                .title("Zero Openings Job")
+                .description("Java engineer")
+                .location("Bengaluru")
+                .employmentType(com.placementintelligence.common.enums.EmploymentType.FULL_TIME)
+                .experienceLevel(com.placementintelligence.common.enums.ExperienceLevel.ENTRY_LEVEL)
+                .openings(0)
+                .applicationDeadline(java.time.LocalDate.now().plusDays(10))
+                .status(com.placementintelligence.common.enums.JobStatus.OPEN)
+                .build()
+        );
+
+        var inactiveCompanyJob = jobRepository.save(
+            com.placementintelligence.entity.Job.builder()
+                .company(inactiveCompany)
+                .recruiter(recruiterProfile)
+                .title("Inactive Company Java Engineer")
+                .description("Java and React developer")
+                .location("Pune")
+                .employmentType(com.placementintelligence.common.enums.EmploymentType.FULL_TIME)
+                .experienceLevel(com.placementintelligence.common.enums.ExperienceLevel.ENTRY_LEVEL)
+                .openings(2)
+                .applicationDeadline(java.time.LocalDate.now().plusDays(10))
+                .status(com.placementintelligence.common.enums.JobStatus.OPEN)
+                .build()
+        );
+
+        // 6. Setup an existing application for student on highMatchJob
+        jobApplicationRepository.save(
+            com.placementintelligence.entity.JobApplication.builder()
+                .job(highMatchJob)
+                .applicant(student)
+                .resume(primaryResume)
+                .resumeFileName("pi_resume.pdf")
+                .resumeFileUrl("storage/resumes/pi_resume.pdf")
+                .resumeFileType("application/pdf")
+                .resumeFileSize(204800L)
+                .coverLetter("Excited to apply for Java engineer position")
+                .status(com.placementintelligence.common.enums.ApplicationStatus.SHORTLISTED)
+                .build()
+        );
+
+        // 7. Authorization checks (Only USER permitted, RECRUITER, ADMIN, SUPER_ADMIN, Inactive USER rejected with 403)
+        assertThrows(org.springframework.security.access.AccessDeniedException.class, () ->
+            placementIntelligenceService.getJobRecommendations(recruiterUser.getUsername())
+        );
+        assertThrows(org.springframework.security.access.AccessDeniedException.class, () ->
+            placementIntelligenceService.getJobRecommendations(admin.getUsername())
+        );
+        assertThrows(org.springframework.security.access.AccessDeniedException.class, () ->
+            placementIntelligenceService.getJobRecommendations(superAdmin.getUsername())
+        );
+        assertThrows(org.springframework.security.access.AccessDeniedException.class, () ->
+            placementIntelligenceService.getJobRecommendations(inactiveStudent.getUsername())
+        );
+
+        // 8. Retrieve student recommendations
+        var recommendations = placementIntelligenceService.getJobRecommendations(student.getUsername());
+        assertNotNull(recommendations);
+        assertFalse(recommendations.isEmpty());
+
+        // 9. Verify ranking & scores
+        assertTrue(recommendations.size() >= 2);
+        var firstRec = recommendations.get(0);
+        assertEquals(highMatchJob.getId(), firstRec.job().id());
+        assertTrue(firstRec.matchScore() >= 80, "Expected high match score >= 80, got: " + firstRec.matchScore());
+        assertEquals("EXCELLENT_MATCH", firstRec.matchGrade());
+
+        // 10. Verify score bounds [0, 100]
+        for (var rec : recommendations) {
+            assertTrue(rec.matchScore() >= 0 && rec.matchScore() <= 100);
+            assertNotNull(rec.matchGrade());
+            assertNotNull(rec.isEligible());
+            assertTrue(rec.isEligible());
+        }
+
+        // 11. Verify matched and missing skills
+        assertTrue(firstRec.matchedSkills().contains("Java"));
+        assertTrue(firstRec.matchedSkills().contains("Spring Boot"));
+        assertTrue(firstRec.matchedSkills().contains("React"));
+        assertTrue(firstRec.missingSkills().contains("Kubernetes"));
+
+        // 12. Verify application context
+        assertTrue(firstRec.hasApplied());
+        assertEquals(com.placementintelligence.common.enums.ApplicationStatus.SHORTLISTED, firstRec.applicationStatus());
+
+        var secondRec = recommendations.stream()
+            .filter(r -> r.job().id().equals(moderateMatchJob.getId()))
+            .findFirst()
+            .orElseThrow();
+        assertFalse(secondRec.hasApplied());
+        assertNull(secondRec.applicationStatus());
+
+        // 13. Verify exclusion of ineligible jobs (closed, expired, zero openings, inactive company)
+        assertTrue(recommendations.stream().noneMatch(r -> r.job().id().equals(closedJob.getId())));
+        assertTrue(recommendations.stream().noneMatch(r -> r.job().id().equals(expiredJob.getId())));
+        assertTrue(recommendations.stream().noneMatch(r -> r.job().id().equals(zeroOpeningsJob.getId())));
+        assertTrue(recommendations.stream().noneMatch(r -> r.job().id().equals(inactiveCompanyJob.getId())));
+
+        // 14. Determinism check
+        var recommendationsSecondRun = placementIntelligenceService.getJobRecommendations(student.getUsername());
+        assertEquals(recommendations.size(), recommendationsSecondRun.size());
+        assertEquals(recommendations.get(0).matchScore(), recommendationsSecondRun.get(0).matchScore());
+        assertEquals(recommendations.get(0).job().id(), recommendationsSecondRun.get(0).job().id());
+
+        // 15. getJobMatchDetails verification
+        var matchDetails = placementIntelligenceService.getJobMatchDetails(student.getUsername(), highMatchJob.getId());
+        assertNotNull(matchDetails);
+        assertEquals(firstRec.matchScore(), matchDetails.matchScore());
+        assertEquals(firstRec.matchedSkills(), matchDetails.matchedSkills());
+
+        assertThrows(BadRequestException.class, () ->
+            placementIntelligenceService.getJobMatchDetails(student.getUsername(), closedJob.getId())
+        );
+        assertThrows(com.placementintelligence.exception.ResourceNotFoundException.class, () ->
+            placementIntelligenceService.getJobMatchDetails(student.getUsername(), 999999L)
+        );
+
+        // 16. getStudentInsights verification
+        var insights = placementIntelligenceService.getStudentInsights(student.getUsername());
+        assertNotNull(insights);
+        assertEquals(100, insights.profileCompleteness());
+        assertTrue(insights.totalSkills() >= 3);
+        assertTrue(insights.totalProjects() >= 1);
+        assertTrue(insights.hasPrimaryResume());
+        assertTrue(insights.eligibleJobsCount() >= 2);
+        assertTrue(insights.matchedJobsCount() >= 1);
+        assertNotNull(insights.topInDemandSkills());
+        assertTrue(insights.topInDemandSkills().contains("Java") || insights.topInDemandSkills().contains("Spring Boot"));
+
+        // 17. Controller endpoints verification
+        org.springframework.security.core.Authentication studentAuth =
+            new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                student.getUsername(),
+                null,
+                java.util.List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_USER"))
+            );
+
+        org.springframework.mock.web.MockHttpServletRequest mockRequest =
+            new org.springframework.mock.web.MockHttpServletRequest();
+        mockRequest.setRequestURI("/v1/recommendations/jobs");
+
+        var recControllerResp = placementIntelligenceController.getJobRecommendations(studentAuth, mockRequest);
+        assertNotNull(recControllerResp);
+        assertTrue(recControllerResp.success());
+        assertEquals("Job recommendations fetched successfully", recControllerResp.message());
+        assertNotNull(recControllerResp.data());
+
+        var matchDetailControllerResp = placementIntelligenceController.getJobMatchDetails(studentAuth, highMatchJob.getId(), mockRequest);
+        assertNotNull(matchDetailControllerResp);
+        assertTrue(matchDetailControllerResp.success());
+        assertEquals("Job match details fetched successfully", matchDetailControllerResp.message());
+
+        var insightsControllerResp = placementIntelligenceController.getStudentInsights(studentAuth, mockRequest);
+        assertNotNull(insightsControllerResp);
+        assertTrue(insightsControllerResp.success());
+        assertEquals("Placement insights fetched successfully", insightsControllerResp.message());
+    }
 }

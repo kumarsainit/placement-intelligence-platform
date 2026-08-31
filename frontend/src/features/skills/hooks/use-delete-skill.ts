@@ -17,6 +17,9 @@ export function useDeleteSkill() {
             queryClient.invalidateQueries({
                 queryKey: USER_SKILLS_QUERY_KEY,
             });
+            queryClient.invalidateQueries({
+                queryKey: ["recommendations"],
+            });
         },
     });
 }

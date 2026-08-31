@@ -34,6 +34,9 @@ export function useUpdateEducation() {
             queryClient.invalidateQueries({
                 queryKey: EDUCATION_QUERY_KEY,
             });
+            queryClient.invalidateQueries({
+                queryKey: ["recommendations"],
+            });
         },
     });
 }

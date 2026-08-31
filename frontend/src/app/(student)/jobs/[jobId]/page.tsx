@@ -8,6 +8,8 @@ import { useApplications } from "@/features/applications/hooks/use-applications"
 import { useApplyJob } from "@/features/applications/hooks/use-apply-job";
 import type { ApplicationFormValues } from "@/features/applications/schemas/application-schema";
 import { useJob } from "@/features/jobs/hooks/use-job";
+import { useJobMatchDetails } from "@/features/placement-intelligence/hooks/use-job-match-details";
+import { MatchScoreBadge } from "@/features/placement-intelligence/components/match-score-badge";
 
 function formatEnum(value: string) {
     return value
@@ -55,6 +57,7 @@ export default function JobDetailsPage() {
     const jobId = Number(params.jobId);
 
     const jobQuery = useJob(jobId);
+    const matchDetailsQuery = useJobMatchDetails(jobId);
     const applyJobMutation = useApplyJob();
     const applicationsQuery = useApplications();
 
@@ -267,6 +270,77 @@ export default function JobDetailsPage() {
                                     </div>
                                 </div>
                             </section>
+
+                            {/* Candidate Match Analysis Section */}
+                            {matchDetailsQuery.data?.data && (
+                                <section className="mt-8 overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-50/70 p-6 dark:border-zinc-800 dark:bg-zinc-800/40">
+                                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                        <div>
+                                            <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
+                                                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                                Placement Intelligence Match
+                                            </div>
+                                            <h3 className="mt-1 text-lg font-bold text-zinc-950 dark:text-white">
+                                                Candidate Compatibility Analysis
+                                            </h3>
+                                        </div>
+
+                                        <MatchScoreBadge
+                                            score={matchDetailsQuery.data.data.matchScore}
+                                            grade={matchDetailsQuery.data.data.matchGrade}
+                                            size="lg"
+                                        />
+                                    </div>
+
+                                    <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                                        {/* Matched Skills */}
+                                        <div className="rounded-xl border border-zinc-200/80 bg-white p-4 dark:border-zinc-700/80 dark:bg-zinc-900">
+                                            <p className="text-xs font-bold text-emerald-700 dark:text-emerald-400">
+                                                ✓ Matched Technical Skills ({matchDetailsQuery.data.data.matchedSkills.length})
+                                            </p>
+                                            {matchDetailsQuery.data.data.matchedSkills.length > 0 ? (
+                                                <div className="mt-2.5 flex flex-wrap gap-1.5">
+                                                    {matchDetailsQuery.data.data.matchedSkills.map((skill) => (
+                                                        <span
+                                                            key={skill}
+                                                            className="rounded-md border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-800 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-300"
+                                                        >
+                                                            {skill}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <p className="mt-2 text-xs text-zinc-400">
+                                                    No direct keyword overlaps detected with your profile skills.
+                                                </p>
+                                            )}
+                                        </div>
+
+                                        {/* Skill Gaps */}
+                                        <div className="rounded-xl border border-zinc-200/80 bg-white p-4 dark:border-zinc-700/80 dark:bg-zinc-900">
+                                            <p className="text-xs font-bold text-zinc-600 dark:text-zinc-400">
+                                                Skill Gaps & Keywords Mentioned ({matchDetailsQuery.data.data.missingSkills.length})
+                                            </p>
+                                            {matchDetailsQuery.data.data.missingSkills.length > 0 ? (
+                                                <div className="mt-2.5 flex flex-wrap gap-1.5">
+                                                    {matchDetailsQuery.data.data.missingSkills.map((skill) => (
+                                                        <span
+                                                            key={skill}
+                                                            className="rounded-md border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-[11px] font-medium text-zinc-600 dark:border-zinc-800 dark:bg-zinc-800 dark:text-zinc-400"
+                                                        >
+                                                            {skill}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <p className="mt-2 text-xs text-emerald-600 dark:text-emerald-400">
+                                                    Great match! No key candidate skill gaps detected in this posting.
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+                                </section>
+                            )}
 
                             <section className="mt-10">
                                 <h2 className="text-xl font-semibold">

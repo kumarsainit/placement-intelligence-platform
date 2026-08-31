@@ -25,6 +25,9 @@ export function useUploadResume() {
             queryClient.invalidateQueries({
                 queryKey: RESUMES_QUERY_KEY,
             });
+            queryClient.invalidateQueries({
+                queryKey: ["recommendations"],
+            });
         },
     });
 }

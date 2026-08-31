@@ -27,6 +27,10 @@ export function useApplyJob() {
                     queryKey: [...JOB_QUERY_KEY, variables.jobId],
                 });
             }
+
+            queryClient.invalidateQueries({
+                queryKey: ["recommendations"],
+            });
         },
     });
 }

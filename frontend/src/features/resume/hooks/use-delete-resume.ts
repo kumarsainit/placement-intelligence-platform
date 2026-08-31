@@ -17,6 +17,9 @@ export function useDeleteResume() {
             queryClient.invalidateQueries({
                 queryKey: RESUMES_QUERY_KEY,
             });
+            queryClient.invalidateQueries({
+                queryKey: ["recommendations"],
+            });
         },
     });
 }

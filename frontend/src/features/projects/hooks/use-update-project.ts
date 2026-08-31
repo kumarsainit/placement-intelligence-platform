@@ -27,6 +27,9 @@ export function useUpdateProject() {
             queryClient.invalidateQueries({
                 queryKey: PROJECTS_QUERY_KEY,
             });
+            queryClient.invalidateQueries({
+                queryKey: ["recommendations"],
+            });
         },
     });
 }

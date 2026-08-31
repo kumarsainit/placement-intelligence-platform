@@ -11,6 +11,11 @@ import { useProfile } from "@/features/profile/hooks/use-profile";
 import { useProjects } from "@/features/projects/hooks/use-projects";
 import { useResumes } from "@/features/resume/hooks/use-resumes";
 import { useUserSkills } from "@/features/skills/hooks/use-user-skills";
+import { useStudentInsights } from "@/features/placement-intelligence/hooks/use-student-insights";
+import { useJobRecommendations } from "@/features/placement-intelligence/hooks/use-job-recommendations";
+import { StudentInsightsCard } from "@/features/placement-intelligence/components/student-insights-card";
+import { RecommendedJobCard } from "@/features/placement-intelligence/components/recommended-job-card";
+import { AppErrorState } from "@/components/ui/error-3";
 
 function formatDate(date: string) {
     return new Date(date).toLocaleDateString("en-IN", {
@@ -28,6 +33,8 @@ export default function DashboardPage() {
     const skillsQuery = useUserSkills();
     const projectsQuery = useProjects();
     const applicationsQuery = useApplications();
+    const insightsQuery = useStudentInsights();
+    const recommendationsQuery = useJobRecommendations();
 
     const currentUser = currentUserQuery.data?.data;
     const profile = profileQuery.data?.data;
@@ -37,6 +44,8 @@ export default function DashboardPage() {
     const projects = projectsQuery.data?.data ?? [];
     const applications =
         applicationsQuery.data?.data ?? [];
+    const insights = insightsQuery.data?.data;
+    const recommendations = recommendationsQuery.data?.data ?? [];
 
     const primaryResume = resumes.find(
         (resume) => resume.isPrimary,
@@ -142,6 +151,64 @@ export default function DashboardPage() {
                                 </p>
                             )}
                         </div>
+
+                        {insights && <StudentInsightsCard insights={insights} />}
+
+                        {/* Placement Intelligence Recommended Jobs */}
+                        <DashboardSection
+                            title="Recommended Opportunities"
+                            description="Personalized job matches calculated from your academic discipline, technical skills, and project experience."
+                        >
+                            {recommendationsQuery.isLoading ? (
+                                <div className="rounded-2xl border border-zinc-200 bg-white p-8 text-center shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+                                    <div className="mx-auto h-7 w-7 animate-spin rounded-full border-2 border-zinc-900 border-t-transparent dark:border-white" />
+                                    <p className="mt-3 text-xs font-medium text-zinc-500">
+                                        Calculating personalized placement matches...
+                                    </p>
+                                </div>
+                            ) : recommendationsQuery.isError ? (
+                                <AppErrorState
+                                    title="Unable to load recommended jobs"
+                                    message="Could not load your job recommendations right now."
+                                    onRetry={() => recommendationsQuery.refetch()}
+                                />
+                            ) : recommendations.length === 0 ? (
+                                <div className="rounded-2xl border border-zinc-200 bg-white p-8 text-center shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+                                    <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
+                                        No placement recommendations currently available
+                                    </p>
+                                    <p className="mt-1 text-xs text-zinc-500">
+                                        Add more technical skills and project details to boost your suitability match rating.
+                                    </p>
+                                    <Link
+                                        href="/skills"
+                                        className="mt-4 inline-block rounded-xl bg-zinc-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
+                                    >
+                                        Add Skills →
+                                    </Link>
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                                        {recommendations.slice(0, 3).map((rec) => (
+                                            <RecommendedJobCard
+                                                key={rec.job.id}
+                                                recommendation={rec}
+                                            />
+                                        ))}
+                                    </div>
+
+                                    <div className="flex justify-end pt-2">
+                                        <Link
+                                            href="/jobs"
+                                            className="text-xs font-semibold text-zinc-700 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-white"
+                                        >
+                                            Explore all career opportunities ({recommendations.length} matches) →
+                                        </Link>
+                                    </div>
+                                </div>
+                            )}
+                        </DashboardSection>
 
                         <DashboardSection
                             title="Profile Overview"

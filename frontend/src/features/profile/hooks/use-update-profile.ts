@@ -22,6 +22,9 @@ export function useUpdateProfile() {
             queryClient.invalidateQueries({
                 queryKey: PROFILE_QUERY_KEY,
             });
+            queryClient.invalidateQueries({
+                queryKey: ["recommendations"],
+            });
         },
     });
 }
