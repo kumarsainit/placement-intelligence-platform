@@ -10,7 +10,7 @@ import { useEducations } from "@/features/education/hooks/use-educations";
 import { useProfile } from "@/features/profile/hooks/use-profile";
 import { useProjects } from "@/features/projects/hooks/use-projects";
 import { useResumes } from "@/features/resume/hooks/use-resumes";
-import { useSkills } from "@/features/skills/hooks/use-skills";
+import { useUserSkills } from "@/features/skills/hooks/use-user-skills";
 
 function formatDate(date: string) {
     return new Date(date).toLocaleDateString("en-IN", {
@@ -25,7 +25,7 @@ export default function DashboardPage() {
     const profileQuery = useProfile();
     const resumesQuery = useResumes();
     const educationsQuery = useEducations();
-    const skillsQuery = useSkills();
+    const skillsQuery = useUserSkills();
     const projectsQuery = useProjects();
     const applicationsQuery = useApplications();
 
