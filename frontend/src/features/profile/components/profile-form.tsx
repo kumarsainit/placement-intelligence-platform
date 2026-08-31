@@ -1,14 +1,20 @@
 "use client";
 
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-
+import {
+    User,
+    Globe,
+    Save,
+    Loader2,
+    CheckCircle2,
+    FileText,
+} from "lucide-react";
 import {
     profileSchema,
     type ProfileFormValues,
 } from "@/features/profile/schemas/profile-schema";
-
 import { useProfile } from "@/features/profile/hooks/use-profile";
 import { useUpdateProfile } from "@/features/profile/hooks/use-update-profile";
 
@@ -41,10 +47,7 @@ export function ProfileForm() {
 
     useEffect(() => {
         const profile = profileQuery.data?.data;
-
-        if (!profile) {
-            return;
-        }
+        if (!profile) return;
 
         reset({
             fullName: profile.fullName ?? "",
@@ -68,9 +71,10 @@ export function ProfileForm() {
 
     if (profileQuery.isLoading) {
         return (
-            <div className="rounded-xl border p-8">
-                <p className="text-sm text-zinc-500">
-                    Loading profile...
+            <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center shadow-xs dark:border-slate-800 dark:bg-slate-900">
+                <div className="mx-auto size-7 animate-spin rounded-full border-2 border-indigo-600 border-t-transparent" />
+                <p className="mt-3 text-xs font-semibold text-slate-500">
+                    Loading profile information...
                 </p>
             </div>
         );
@@ -78,17 +82,16 @@ export function ProfileForm() {
 
     if (profileQuery.isError) {
         return (
-            <div className="rounded-xl border border-red-200 p-8">
-                <p className="text-sm text-red-600">
+            <div className="rounded-2xl border border-red-200 bg-red-50 p-8 text-center dark:border-red-900 dark:bg-red-950/40">
+                <p className="text-xs font-bold text-red-700 dark:text-red-300">
                     Failed to load your profile.
                 </p>
-
                 <button
                     type="button"
                     onClick={() => profileQuery.refetch()}
-                    className="mt-4 rounded-lg border px-4 py-2 text-sm font-medium hover:bg-zinc-100"
+                    className="mt-4 rounded-xl bg-red-600 px-4 py-2 text-xs font-bold text-white hover:bg-red-700"
                 >
-                    Retry
+                    Retry Loading
                 </button>
             </div>
         );
@@ -97,277 +100,261 @@ export function ProfileForm() {
     return (
         <form
             onSubmit={handleSubmit(onSubmit)}
-            className="space-y-8 rounded-xl border bg-white p-8 shadow-sm"
+            className="space-y-8 rounded-3xl border border-slate-200 bg-white p-6 sm:p-10 shadow-xs dark:border-slate-800 dark:bg-slate-900"
         >
-            {/* Personal Information */}
-
-            <section>
-                <h2 className="text-lg font-semibold">
-                    Personal Information
-                </h2>
-
-                <div className="mt-6 grid gap-6 md:grid-cols-2">
-                    <FormField
-                        label="Full Name"
-                        error={errors.fullName?.message}
-                    >
-                        <input
-                            {...register("fullName")}
-                            className="input"
-                            placeholder="Enter your full name"
-                        />
-                    </FormField>
-
-                    <FormField
-                        label="College"
-                        error={errors.college?.message}
-                    >
-                        <input
-                            {...register("college")}
-                            className="input"
-                            placeholder="Enter your college"
-                        />
-                    </FormField>
-
-                    <FormField
-                        label="Degree"
-                        error={errors.degree?.message}
-                    >
-                        <input
-                            {...register("degree")}
-                            className="input"
-                            placeholder="e.g. M.Tech"
-                        />
-                    </FormField>
-
-                    <FormField
-                        label="Branch"
-                        error={errors.branch?.message}
-                    >
-                        <input
-                            {...register("branch")}
-                            className="input"
-                            placeholder="e.g. Mathematics & Computing"
-                        />
-                    </FormField>
-
-                    <FormField
-                        label="Graduation Year"
-                        error={errors.graduationYear?.message}
-                    >
-                        <input
-                            type="number"
-                            {...register("graduationYear", {
-                                setValueAs: (value) =>
-                                    value === ""
-                                        ? undefined
-                                        : Number(value),
-                            })}
-                            className="input"
-                            placeholder="2027"
-                        />
-                    </FormField>
-
-                    <FormField
-                        label="CGPA"
-                        error={errors.cgpa?.message}
-                    >
-                        <input
-                            type="number"
-                            step="0.01"
-                            {...register("cgpa", {
-                                setValueAs: (value) =>
-                                    value === ""
-                                        ? undefined
-                                        : Number(value),
-                            })}
-                            className="input"
-                            placeholder="8.50"
-                        />
-                    </FormField>
-                </div>
-            </section>
-
-            {/* Professional Information */}
-
-            <section>
-                <h2 className="text-lg font-semibold">
-                    Professional Information
-                </h2>
-
-                <div className="mt-6">
-                    <FormField
-                        label="Bio"
-                        error={errors.bio?.message}
-                    >
-                        <textarea
-                            {...register("bio")}
-                            rows={5}
-                            className="input resize-none"
-                            placeholder="Tell us about yourself..."
-                        />
-                    </FormField>
-                </div>
-            </section>
-
-            {/* Developer Profiles */}
-
-            <section>
-                <h2 className="text-lg font-semibold">
-                    Developer Profiles
-                </h2>
-
-                <div className="mt-6 grid gap-6 md:grid-cols-2">
-                    <FormField
-                        label="GitHub"
-                        error={errors.githubUrl?.message}
-                    >
-                        <input
-                            {...register("githubUrl")}
-                            className="input"
-                            placeholder="https://github.com/username"
-                        />
-                    </FormField>
-
-                    <FormField
-                        label="LinkedIn"
-                        error={errors.linkedinUrl?.message}
-                    >
-                        <input
-                            {...register("linkedinUrl")}
-                            className="input"
-                            placeholder="https://linkedin.com/in/username"
-                        />
-                    </FormField>
-
-                    <FormField
-                        label="LeetCode"
-                        error={errors.leetcodeUrl?.message}
-                    >
-                        <input
-                            {...register("leetcodeUrl")}
-                            className="input"
-                            placeholder="https://leetcode.com/username"
-                        />
-                    </FormField>
-
-                    <FormField
-                        label="Codeforces"
-                        error={errors.codeforcesUrl?.message}
-                    >
-                        <input
-                            {...register("codeforcesUrl")}
-                            className="input"
-                            placeholder="https://codeforces.com/profile/username"
-                        />
-                    </FormField>
-
-                    <div className="md:col-span-2">
-                        <FormField
-                            label="Portfolio"
-                            error={errors.portfolioUrl?.message}
-                        >
-                            <input
-                                {...register("portfolioUrl")}
-                                className="input"
-                                placeholder="https://yourportfolio.com"
-                            />
-                        </FormField>
-                    </div>
-                </div>
-            </section>
-
-            {/* Account information */}
-
-            {profileQuery.data?.data && (
-                <section className="border-t pt-6">
-                    <h2 className="text-lg font-semibold">
-                        Account Information
-                    </h2>
-
-                    <div className="mt-4 grid gap-4 md:grid-cols-2">
-                        <div>
-                            <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
-                                Username
-                            </p>
-
-                            <p className="mt-1 text-sm">
-                                {profileQuery.data.data.username}
-                            </p>
-                        </div>
-
-                        <div>
-                            <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
-                                Phone Number
-                            </p>
-
-                            <p className="mt-1 text-sm">
-                                {profileQuery.data.data.phoneNumber}
-                            </p>
-                        </div>
-                    </div>
-                </section>
-            )}
-
-            {/* Status */}
-
+            {/* Status alerts */}
             {updateProfileMutation.isSuccess && (
-                <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3">
-                    <p className="text-sm text-green-700">
-                        Profile updated successfully.
-                    </p>
+                <div className="flex items-center gap-2 rounded-2xl border border-emerald-500/30 bg-emerald-50 p-4 text-xs font-bold text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300">
+                    <CheckCircle2 className="size-4 shrink-0 text-emerald-600" />
+                    <span>Your student profile has been saved successfully.</span>
                 </div>
             )}
 
             {updateProfileMutation.isError && (
-                <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3">
-                    <p className="text-sm text-red-700">
-                        Failed to update your profile. Please try again.
-                    </p>
+                <div className="rounded-2xl border border-red-500/30 bg-red-50 p-4 text-xs font-bold text-red-800 dark:bg-red-950/40 dark:text-red-300">
+                    Failed to save profile. Please verify your entries and try again.
                 </div>
             )}
 
-            {/* Submit */}
+            {/* Section 1: Academic & Personal Information */}
+            <section className="space-y-4">
+                <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
+                    <User className="size-4 text-indigo-600 dark:text-indigo-400" />
+                    <h2 className="text-base font-bold text-slate-900 dark:text-white">
+                        Personal & Academic Information
+                    </h2>
+                </div>
 
-            <div className="flex justify-end border-t pt-6">
+                <div className="grid gap-5 sm:grid-cols-2">
+                    <div>
+                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                            Full Legal Name
+                        </label>
+                        <input
+                            {...register("fullName")}
+                            placeholder="e.g. John Doe"
+                            className="input"
+                        />
+                        {errors.fullName && (
+                            <p className="mt-1 text-xs font-medium text-red-500">
+                                {errors.fullName.message}
+                            </p>
+                        )}
+                    </div>
+
+                    <div>
+                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                            College / University Name
+                        </label>
+                        <input
+                            {...register("college")}
+                            placeholder="e.g. National Institute of Technology"
+                            className="input"
+                        />
+                        {errors.college && (
+                            <p className="mt-1 text-xs font-medium text-red-500">
+                                {errors.college.message}
+                            </p>
+                        )}
+                    </div>
+
+                    <div>
+                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                            Degree Level
+                        </label>
+                        <input
+                            {...register("degree")}
+                            placeholder="e.g. B.Tech / M.Tech"
+                            className="input"
+                        />
+                        {errors.degree && (
+                            <p className="mt-1 text-xs font-medium text-red-500">
+                                {errors.degree.message}
+                            </p>
+                        )}
+                    </div>
+
+                    <div>
+                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                            Academic Branch / Major
+                        </label>
+                        <input
+                            {...register("branch")}
+                            placeholder="e.g. Computer Science & Engineering"
+                            className="input"
+                        />
+                        {errors.branch && (
+                            <p className="mt-1 text-xs font-medium text-red-500">
+                                {errors.branch.message}
+                            </p>
+                        )}
+                    </div>
+
+                    <div>
+                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                            Expected Graduation Year
+                        </label>
+                        <input
+                            type="number"
+                            {...register("graduationYear", {
+                                setValueAs: (v) => (v === "" ? undefined : Number(v)),
+                            })}
+                            placeholder="e.g. 2026"
+                            className="input"
+                        />
+                        {errors.graduationYear && (
+                            <p className="mt-1 text-xs font-medium text-red-500">
+                                {errors.graduationYear.message}
+                            </p>
+                        )}
+                    </div>
+
+                    <div>
+                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                            Cumulative CGPA / Grade
+                        </label>
+                        <input
+                            type="number"
+                            step="0.01"
+                            {...register("cgpa", {
+                                setValueAs: (v) => (v === "" ? undefined : Number(v)),
+                            })}
+                            placeholder="e.g. 8.75"
+                            className="input"
+                        />
+                        {errors.cgpa && (
+                            <p className="mt-1 text-xs font-medium text-red-500">
+                                {errors.cgpa.message}
+                            </p>
+                        )}
+                    </div>
+                </div>
+            </section>
+
+            {/* Section 2: Bio */}
+            <section className="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+                <div className="flex items-center gap-2 pb-2">
+                    <FileText className="size-4 text-indigo-600 dark:text-indigo-400" />
+                    <h2 className="text-base font-bold text-slate-900 dark:text-white">
+                        Career Objective & Bio
+                    </h2>
+                </div>
+
+                <div>
+                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                        About You
+                    </label>
+                    <textarea
+                        {...register("bio")}
+                        rows={4}
+                        placeholder="Write a brief overview of your technical interests, problem-solving passion, and career aspirations..."
+                        className="input resize-none"
+                    />
+                    {errors.bio && (
+                        <p className="mt-1 text-xs font-medium text-red-500">
+                            {errors.bio.message}
+                        </p>
+                    )}
+                </div>
+            </section>
+
+            {/* Section 3: Developer & Portfolio Links */}
+            <section className="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+                <div className="flex items-center gap-2 pb-2">
+                    <Globe className="size-4 text-indigo-600 dark:text-indigo-400" />
+                    <h2 className="text-base font-bold text-slate-900 dark:text-white">
+                        Developer Profiles & Portfolio
+                    </h2>
+                </div>
+
+                <div className="grid gap-5 sm:grid-cols-2">
+                    <div>
+                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                            GitHub Profile URL
+                        </label>
+                        <input
+                            {...register("githubUrl")}
+                            placeholder="https://github.com/username"
+                            className="input"
+                        />
+                        {errors.githubUrl && (
+                            <p className="mt-1 text-xs font-medium text-red-500">
+                                {errors.githubUrl.message}
+                            </p>
+                        )}
+                    </div>
+
+                    <div>
+                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                            LinkedIn Profile URL
+                        </label>
+                        <input
+                            {...register("linkedinUrl")}
+                            placeholder="https://linkedin.com/in/username"
+                            className="input"
+                        />
+                        {errors.linkedinUrl && (
+                            <p className="mt-1 text-xs font-medium text-red-500">
+                                {errors.linkedinUrl.message}
+                            </p>
+                        )}
+                    </div>
+
+                    <div>
+                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                            LeetCode URL
+                        </label>
+                        <input
+                            {...register("leetcodeUrl")}
+                            placeholder="https://leetcode.com/username"
+                            className="input"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                            Codeforces URL
+                        </label>
+                        <input
+                            {...register("codeforcesUrl")}
+                            placeholder="https://codeforces.com/profile/username"
+                            className="input"
+                        />
+                    </div>
+
+                    <div className="sm:col-span-2">
+                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                            Personal Portfolio Website
+                        </label>
+                        <input
+                            {...register("portfolioUrl")}
+                            placeholder="https://yourportfolio.dev"
+                            className="input"
+                        />
+                    </div>
+                </div>
+            </section>
+
+            {/* Submit Action */}
+            <div className="flex justify-end pt-4 border-t border-slate-100 dark:border-slate-800">
                 <button
                     type="submit"
                     disabled={updateProfileMutation.isPending}
-                    className="rounded-lg bg-black px-6 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="inline-flex items-center gap-2 rounded-2xl bg-indigo-600 px-8 py-3 text-xs font-bold text-white shadow-md shadow-indigo-600/20 transition hover:bg-indigo-700 active:scale-[0.98] disabled:opacity-50"
                 >
-                    {updateProfileMutation.isPending
-                        ? "Saving..."
-                        : "Save Profile"}
+                    {updateProfileMutation.isPending ? (
+                        <>
+                            <Loader2 className="size-4 animate-spin" />
+                            <span>Saving Changes...</span>
+                        </>
+                    ) : (
+                        <>
+                            <Save className="size-4" />
+                            <span>Save Profile Changes</span>
+                        </>
+                    )}
                 </button>
             </div>
         </form>
-    );
-}
-
-interface FormFieldProps {
-    label: string;
-    error?: string;
-    children: React.ReactNode;
-}
-
-function FormField({
-    label,
-    error,
-    children,
-}: FormFieldProps) {
-    return (
-        <div>
-            <label className="text-sm font-medium text-zinc-900">
-                {label}
-            </label>
-
-            {children}
-
-            {error && (
-                <p className="mt-1 text-sm text-red-600">
-                    {error}
-                </p>
-            )}
-        </div>
     );
 }

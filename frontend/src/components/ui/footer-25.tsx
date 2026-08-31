@@ -1,4 +1,8 @@
+"use client";
+
+import React from "react";
 import Link from "next/link";
+import { CamPlaceLogo } from "@/components/shared/camplace-logo";
 
 export interface FooterLink {
     label: string;
@@ -12,42 +16,35 @@ export interface Footer25Props {
 }
 
 export function Footer25({
-    brandName = "Placement Intelligence",
-    description = "A unified platform connecting students, recruiters, and placement officers with intelligent career management tools.",
+    brandName = "CamPlace",
+    description = "CamPlace connects ambitious students, verified hiring employers, and smart career matching intelligence into one unified platform.",
     links = [
-        { label: "Dashboard", href: "/dashboard" },
-        { label: "Jobs", href: "/jobs" },
-        { label: "Applications", href: "/applications" },
-        { label: "Profile", href: "/profile" },
+        { label: "Opportunities", href: "/jobs" },
+        { label: "For Students", href: "/auth?role=student" },
+        { label: "For Recruiters", href: "/auth?role=recruiter" },
+        { label: "Sign In", href: "/auth" },
     ],
 }: Footer25Props) {
     const currentYear = new Date().getFullYear();
 
     return (
-        <footer className="border-t border-zinc-200 bg-white text-zinc-600 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400">
-            <div className="mx-auto max-w-6xl px-6 py-10 sm:px-8">
-                <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                        <div className="flex items-center gap-2">
-                            <span className="flex h-6 w-6 items-center justify-center rounded-md bg-zinc-900 text-xs font-black text-white dark:bg-zinc-100 dark:text-zinc-900">
-                                PI
-                            </span>
-                            <span className="text-sm font-bold tracking-tight text-zinc-900 dark:text-white">
-                                {brandName}
-                            </span>
-                        </div>
+        <footer className="border-t border-slate-200 bg-white text-slate-600 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400">
+            <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+                <div className="flex flex-col gap-8 md:flex-row md:items-start md:justify-between">
+                    <div className="max-w-md">
+                        <CamPlaceLogo size="md" showTagline={true} />
 
-                        <p className="mt-1.5 max-w-md text-xs leading-relaxed text-zinc-500">
+                        <p className="mt-3 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
                             {description}
                         </p>
                     </div>
 
-                    <nav className="flex flex-wrap items-center gap-5 text-xs font-medium">
+                    <nav className="flex flex-wrap items-center gap-6 text-xs font-semibold" aria-label="Footer Navigation">
                         {links.map((link) => (
                             <Link
                                 key={link.label}
                                 href={link.href}
-                                className="transition hover:text-zinc-900 dark:hover:text-white"
+                                className="transition-colors hover:text-indigo-600 dark:hover:text-cyan-400"
                             >
                                 {link.label}
                             </Link>
@@ -55,9 +52,11 @@ export function Footer25({
                     </nav>
                 </div>
 
-                <div className="mt-8 border-t border-zinc-100 pt-6 text-xs text-zinc-400 dark:border-zinc-900 sm:flex sm:items-center sm:justify-between">
+                <div className="mt-10 border-t border-slate-100 pt-6 text-xs text-slate-400 dark:border-slate-900 sm:flex sm:items-center sm:justify-between">
                     <p>© {currentYear} {brandName}. All rights reserved.</p>
-                    <p className="mt-2 sm:mt-0">Connecting talent with opportunity.</p>
+                    <p className="mt-2 sm:mt-0 font-medium">
+                        Connecting talent with career opportunities.
+                    </p>
                 </div>
             </div>
         </footer>

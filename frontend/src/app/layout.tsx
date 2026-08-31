@@ -8,11 +8,11 @@ import "./globals.css";
 
 export const metadata: Metadata = {
     title: {
-        default: "Placement Intelligence",
-        template: "%s | Placement Intelligence",
+        default: "CamPlace | Placement Intelligence Platform",
+        template: "%s | CamPlace",
     },
     description:
-        "A unified placement platform for students and recruiters.",
+        "CamPlace is a unified placement platform connecting students, recruiters, and placement intelligence with smart job matching, applicant tracking, and career workflows.",
 };
 
 export default function RootLayout({

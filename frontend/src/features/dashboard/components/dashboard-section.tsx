@@ -1,28 +1,32 @@
-import type { ReactNode } from "react";
+import React, { type ReactNode } from "react";
 
 interface DashboardSectionProps {
     title: string;
     description?: string;
     children: ReactNode;
+    action?: ReactNode;
 }
 
 export function DashboardSection({
-                                     title,
-                                     description,
-                                     children,
-                                 }: DashboardSectionProps) {
+    title,
+    description,
+    children,
+    action,
+}: DashboardSectionProps) {
     return (
-        <section>
-            <div className="mb-4">
-                <h2 className="text-xl font-semibold">
-                    {title}
-                </h2>
-
-                {description && (
-                    <p className="mt-1 text-sm text-zinc-500">
-                        {description}
-                    </p>
-                )}
+        <section className="space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2">
+                <div>
+                    <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
+                        {title}
+                    </h2>
+                    {description && (
+                        <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                            {description}
+                        </p>
+                    )}
+                </div>
+                {action && <div>{action}</div>}
             </div>
 
             {children}
