@@ -30,6 +30,10 @@ public interface JobApplicationRepository
         Job job
     );
 
+    List<JobApplication> findByJobRecruiterOrderByAppliedAtDesc(
+        com.placementintelligence.entity.RecruiterProfile recruiter
+    );
+
     List<JobApplication> findByJobAndStatusOrderByAppliedAtDesc(
         Job job,
         ApplicationStatus status

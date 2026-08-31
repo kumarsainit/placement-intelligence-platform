@@ -26,11 +26,12 @@ public class CompanyController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<CompanyResponse> createCompany(
+        org.springframework.security.core.Authentication authentication,
         @Valid @RequestBody CreateCompanyRequest request,
         HttpServletRequest httpRequest) {
 
         CompanyResponse response =
-            companyService.createCompany(request);
+            companyService.createCompany(authentication.getName(), request);
 
         return ApiResponseFactory.created(
             response,

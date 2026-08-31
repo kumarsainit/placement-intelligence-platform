@@ -11,4 +11,6 @@ public interface AuthService {
 
     LoginResponse verifyOtp(VerifyOtpRequest request);
 
+    LoginResponse refreshToken(com.placementintelligence.dto.request.RefreshTokenRequest request);
+
 }

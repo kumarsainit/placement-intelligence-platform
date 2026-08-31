@@ -170,11 +170,21 @@ public class UserEducationServiceImpl
 
     private User getUser(String username) {
 
-        return userRepository.findByUsername(username)
+        User user = userRepository.findByUsername(username)
             .orElseThrow(() ->
                 new ResourceNotFoundException(
                     "User not found"
                 ));
+
+        if (user.getRole() != com.placementintelligence.common.enums.UserRole.USER) {
+            throw new org.springframework.security.access.AccessDeniedException("Only student users can access education records");
+        }
+
+        if (!Boolean.TRUE.equals(user.getIsActive())) {
+            throw new org.springframework.security.access.AccessDeniedException("User account is inactive");
+        }
+
+        return user;
     }
 
     private UserEducation getUserEducation(
@@ -195,7 +205,7 @@ public class UserEducationServiceImpl
         if (!education.getUser().getId()
             .equals(user.getId())) {
 
-            throw new UnauthorizedException(
+            throw new org.springframework.security.access.AccessDeniedException(
                 "You are not authorized to access this education"
             );
         }

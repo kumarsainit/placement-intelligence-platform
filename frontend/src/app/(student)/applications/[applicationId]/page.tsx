@@ -1,10 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
 import { ApplicationStatusBadge } from "@/features/applications/components/application-status-badge";
 import { useApplication } from "@/features/applications/hooks/use-application";
+import { getResumeFile } from "@/features/resume/api/resume-api";
 
 function formatDate(date: string) {
     return new Date(date).toLocaleDateString("en-IN", {
@@ -33,6 +35,33 @@ export default function ApplicationDetailsPage() {
 
     const applicationQuery =
         useApplication(applicationId);
+
+    const [isDownloadingResume, setIsDownloadingResume] = useState(false);
+    const [resumeDownloadError, setResumeDownloadError] = useState<string | null>(null);
+
+    const handleDownloadResume = async (resumeId: number, fileName: string) => {
+        try {
+            setIsDownloadingResume(true);
+            setResumeDownloadError(null);
+            const blob = await getResumeFile(resumeId);
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.target = "_blank";
+            a.rel = "noreferrer";
+            a.download = fileName || `resume-${resumeId}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(() => window.URL.revokeObjectURL(url), 10000);
+        } catch (error) {
+            setResumeDownloadError(
+                error instanceof Error ? error.message : "Failed to load resume file",
+            );
+        } finally {
+            setIsDownloadingResume(false);
+        }
+    };
 
     if (
         !Number.isInteger(applicationId) ||
@@ -222,32 +251,36 @@ export default function ApplicationDetailsPage() {
                                         <div>
                                             <p className="font-medium">
                                                 {
-                                                    application.resumeFileName
+                                                    application.resumeFileName || "Submitted Resume"
                                                 }
                                             </p>
 
                                             <p className="mt-1 text-sm text-zinc-500">
                                                 {
-                                                    application.resumeFileType
+                                                    application.resumeFileType || "PDF"
                                                 }{" "}
                                                 ·{" "}
                                                 {formatFileSize(
-                                                    application.resumeFileSize,
+                                                    application.resumeFileSize || 0,
                                                 )}
                                             </p>
+
+                                            {resumeDownloadError && (
+                                                <p className="mt-2 text-sm text-red-600">
+                                                    {resumeDownloadError}
+                                                </p>
+                                            )}
                                         </div>
 
-                                        {application.resumeFileUrl && (
-                                            <a
-                                                href={
-                                                    application.resumeFileUrl
-                                                }
-                                                target="_blank"
-                                                rel="noreferrer"
-                                                className="w-fit rounded-lg border bg-white px-4 py-2 text-sm font-medium hover:bg-zinc-50"
+                                        {application.resumeId && (
+                                            <button
+                                                type="button"
+                                                onClick={() => handleDownloadResume(application.resumeId, application.resumeFileName)}
+                                                disabled={isDownloadingResume}
+                                                className="w-fit rounded-lg border bg-white px-4 py-2 text-sm font-medium hover:bg-zinc-50 disabled:opacity-50"
                                             >
-                                                View Resume
-                                            </a>
+                                                {isDownloadingResume ? "Downloading..." : "View / Download Resume"}
+                                            </button>
                                         )}
                                     </div>
                                 </div>

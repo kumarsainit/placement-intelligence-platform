@@ -95,6 +95,23 @@ public class JobApplicationController {
         );
     }
 
+    @GetMapping("/recruiter/applications")
+    public ApiResponse<List<JobApplicationResponse>> getAllApplicationsForRecruiter(
+        Authentication authentication,
+        HttpServletRequest request) {
+
+        List<JobApplicationResponse> response =
+            jobApplicationService.getAllApplicationsForRecruiter(
+                authentication.getName()
+            );
+
+        return ApiResponseFactory.success(
+            response,
+            "Applications fetched successfully",
+            request
+        );
+    }
+
     @GetMapping("/recruiter/applications/{applicationId}")
     public ApiResponse<JobApplicationResponse> getApplicationByIdForRecruiter(
         Authentication authentication,
@@ -133,5 +150,28 @@ public class JobApplicationController {
             "Application status updated successfully",
             request
         );
+    }
+
+    @GetMapping("/recruiter/applications/{applicationId}/resume")
+    public org.springframework.http.ResponseEntity<org.springframework.core.io.Resource> downloadApplicationResume(
+        Authentication authentication,
+        @PathVariable Long applicationId) {
+
+        org.springframework.core.io.Resource resource =
+            jobApplicationService.getApplicationResumeForRecruiter(
+                authentication.getName(),
+                applicationId
+            );
+
+        return org.springframework.http.ResponseEntity.ok()
+            .header(
+                org.springframework.http.HttpHeaders.CONTENT_DISPOSITION,
+                "inline; filename=\"" + resource.getFilename() + "\""
+            )
+            .header(
+                org.springframework.http.HttpHeaders.CONTENT_TYPE,
+                org.springframework.http.MediaType.APPLICATION_PDF_VALUE
+            )
+            .body(resource);
     }
 }

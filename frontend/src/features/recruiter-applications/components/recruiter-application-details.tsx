@@ -1,9 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 
 import { RecruiterApplicationStatusSelect } from "@/features/recruiter-applications/components/recruiter-application-status-select";
 import { useUpdateApplicationStatus } from "@/features/recruiter-applications/hooks/use-update-application-status";
+import { getRecruiterApplicationResumeFile } from "@/features/recruiter-applications/api/recruiter-application-api";
 import type {
     ApplicationStatus,
     RecruiterApplication,
@@ -28,6 +30,33 @@ export function RecruiterApplicationDetails({
                                             }: RecruiterApplicationDetailsProps) {
     const updateStatusMutation =
         useUpdateApplicationStatus();
+
+    const [isDownloadingResume, setIsDownloadingResume] = useState(false);
+    const [resumeDownloadError, setResumeDownloadError] = useState<string | null>(null);
+
+    const handleDownloadResume = async () => {
+        try {
+            setIsDownloadingResume(true);
+            setResumeDownloadError(null);
+            const blob = await getRecruiterApplicationResumeFile(application.id);
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.target = "_blank";
+            a.rel = "noreferrer";
+            a.download = application.resumeFileName || `resume-app-${application.id}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(() => window.URL.revokeObjectURL(url), 10000);
+        } catch (error) {
+            setResumeDownloadError(
+                error instanceof Error ? error.message : "Failed to load resume file",
+            );
+        } finally {
+            setIsDownloadingResume(false);
+        }
+    };
 
     const handleStatusChange = (
         status: ApplicationStatus,
@@ -102,23 +131,29 @@ export function RecruiterApplicationDetails({
 
                 <div className="mt-4 rounded-lg border p-4">
                     <p className="font-medium">
-                        {application.resumeFileName}
+                        {application.resumeFileName || "Candidate Resume"}
                     </p>
 
                     <div className="mt-1 text-sm text-zinc-500">
-                        {application.resumeFileType} ·{" "}
-                        {application.resumeFileSize.toLocaleString()}{" "}
+                        {application.resumeFileType || "PDF"} ·{" "}
+                        {application.resumeFileSize?.toLocaleString() || "0"}{" "}
                         bytes
                     </div>
 
-                    <a
-                        href={application.resumeFileUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="mt-3 inline-block text-sm font-medium hover:underline"
+                    {resumeDownloadError && (
+                        <div className="mt-2 text-sm text-red-600">
+                            {resumeDownloadError}
+                        </div>
+                    )}
+
+                    <button
+                        type="button"
+                        onClick={handleDownloadResume}
+                        disabled={isDownloadingResume}
+                        className="mt-3 inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-800 disabled:opacity-50"
                     >
-                        View Resume →
-                    </a>
+                        {isDownloadingResume ? "Downloading..." : "View / Download Resume →"}
+                    </button>
                 </div>
             </div>
 

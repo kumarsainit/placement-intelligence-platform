@@ -1,16 +1,19 @@
 package com.placementintelligence.exception;
 
 import com.placementintelligence.common.response.ApiResponse;
-import org.springframework.web.bind.MethodArgumentNotValidException;
-import java.util.stream.Collectors;
-import com.placementintelligence.common.response.ApiResponseFactory;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.Instant;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -134,6 +137,78 @@ public class GlobalExceptionHandler {
         );
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiResponse<Void>> handleAccessDenied(
+        AccessDeniedException ex,
+        HttpServletRequest request
+    ) {
+
+        ApiResponse<Void> response = new ApiResponse<>(
+            false,
+            HttpStatus.FORBIDDEN.value(),
+            "Access denied: " + ex.getMessage(),
+            null,
+            Instant.now(),
+            request.getRequestURI()
+        );
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ApiResponse<Void>> handleBadCredentials(
+        BadCredentialsException ex,
+        HttpServletRequest request
+    ) {
+
+        ApiResponse<Void> response = new ApiResponse<>(
+            false,
+            HttpStatus.UNAUTHORIZED.value(),
+            "Invalid credentials",
+            null,
+            Instant.now(),
+            request.getRequestURI()
+        );
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+    }
+
+    @ExceptionHandler(JwtException.class)
+    public ResponseEntity<ApiResponse<Void>> handleJwtException(
+        JwtException ex,
+        HttpServletRequest request
+    ) {
+
+        ApiResponse<Void> response = new ApiResponse<>(
+            false,
+            HttpStatus.UNAUTHORIZED.value(),
+            "Invalid or expired token",
+            null,
+            Instant.now(),
+            request.getRequestURI()
+        );
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiResponse<Void>> handleHttpMessageNotReadable(
+        HttpMessageNotReadableException ex,
+        HttpServletRequest request
+    ) {
+
+        ApiResponse<Void> response = new ApiResponse<>(
+            false,
+            HttpStatus.BAD_REQUEST.value(),
+            "Malformed request body",
+            null,
+            Instant.now(),
+            request.getRequestURI()
+        );
+
+        return ResponseEntity.badRequest().body(response);
     }
 
     @ExceptionHandler(ResourceAlreadyExistsException.class)

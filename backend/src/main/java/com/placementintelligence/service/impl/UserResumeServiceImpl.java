@@ -234,9 +234,19 @@ public class UserResumeServiceImpl implements UserResumeService {
 
     private User getUser(String username) {
 
-        return userRepository.findByUsername(username)
+        User user = userRepository.findByUsername(username)
             .orElseThrow(() ->
                 new ResourceNotFoundException("User not found"));
+
+        if (user.getRole() != com.placementintelligence.common.enums.UserRole.USER) {
+            throw new org.springframework.security.access.AccessDeniedException("Only student users can access resume records");
+        }
+
+        if (!Boolean.TRUE.equals(user.getIsActive())) {
+            throw new org.springframework.security.access.AccessDeniedException("User account is inactive");
+        }
+
+        return user;
     }
 
     private void verifyOwnership(
@@ -245,7 +255,7 @@ public class UserResumeServiceImpl implements UserResumeService {
 
         if (!resume.getUser().getId().equals(user.getId())) {
 
-            throw new ResourceNotFoundException(
+            throw new org.springframework.security.access.AccessDeniedException(
                 "You are not authorized to access this resume"
             );
         }

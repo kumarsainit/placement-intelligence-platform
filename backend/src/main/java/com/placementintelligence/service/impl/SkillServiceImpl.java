@@ -1,12 +1,16 @@
 package com.placementintelligence.service.impl;
 
+import com.placementintelligence.common.enums.UserRole;
+import com.placementintelligence.entity.User;
 import com.placementintelligence.exception.ResourceNotFoundException;
 import com.placementintelligence.exception.ResourceAlreadyExistsException;
+import com.placementintelligence.exception.UnauthorizedException;
 import com.placementintelligence.dto.request.CreateSkillRequest;
 import com.placementintelligence.dto.response.SkillResponse;
 import com.placementintelligence.entity.Skill;
 import com.placementintelligence.mapper.SkillMapper;
 import com.placementintelligence.repository.SkillRepository;
+import com.placementintelligence.repository.UserRepository;
 import com.placementintelligence.service.SkillService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,12 +23,15 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SkillServiceImpl implements SkillService {
 
+    private final UserRepository userRepository;
     private final SkillRepository skillRepository;
     private final SkillMapper skillMapper;
 
     @Override
     @Transactional
-    public SkillResponse createSkill(CreateSkillRequest request) {
+    public SkillResponse createSkill(String username, CreateSkillRequest request) {
+
+        verifyPrivilegedUser(username);
 
         String normalizedName = normalizeName(request.name());
 
@@ -66,8 +73,11 @@ public class SkillServiceImpl implements SkillService {
     @Override
     @Transactional
     public SkillResponse updateSkill(
+        String username,
         Long skillId,
         CreateSkillRequest request) {
+
+        verifyPrivilegedUser(username);
 
         Skill skill = getSkill(skillId);
 
@@ -92,7 +102,9 @@ public class SkillServiceImpl implements SkillService {
 
     @Override
     @Transactional
-    public void deleteSkill(Long skillId) {
+    public void deleteSkill(String username, Long skillId) {
+
+        verifyPrivilegedUser(username);
 
         Skill skill = getSkill(skillId);
 
@@ -105,6 +117,20 @@ public class SkillServiceImpl implements SkillService {
         skill.setUpdatedAt(Instant.now());
 
         skillRepository.save(skill);
+    }
+
+    private void verifyPrivilegedUser(String username) {
+
+        User user = userRepository.findByUsername(username)
+            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        if (user.getRole() != UserRole.ADMIN && user.getRole() != UserRole.SUPER_ADMIN && user.getRole() != UserRole.RECRUITER) {
+            throw new org.springframework.security.access.AccessDeniedException("Only privileged users can manage the skill catalog");
+        }
+
+        if (!Boolean.TRUE.equals(user.getIsActive())) {
+            throw new org.springframework.security.access.AccessDeniedException("User account is inactive");
+        }
     }
 
     private Skill getSkill(Long skillId) {

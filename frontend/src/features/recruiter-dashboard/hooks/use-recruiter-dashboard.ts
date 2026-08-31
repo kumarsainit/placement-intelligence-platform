@@ -3,7 +3,7 @@ import {
 } from "@tanstack/react-query";
 
 import {
-    getRecruiterJobApplications,
+    getAllRecruiterApplications,
 } from "@/features/recruiter-applications/api/recruiter-application-api";
 import {
     useRecruiterCompanies,
@@ -33,31 +33,12 @@ export function useRecruiterDashboard() {
         queryKey: [
             "recruiter-dashboard",
             "applications",
-            jobs.map((job) => job.id),
         ],
 
         queryFn: async () => {
-            const responses =
-                await Promise.all(
-                    jobs.map((job) =>
-                        getRecruiterJobApplications(
-                            job.id,
-                        ),
-                    ),
-                );
-
-            const applications =
-                responses.flatMap(
-                    (response) =>
-                        response.data,
-                );
-
-            return applications;
+            const response = await getAllRecruiterApplications();
+            return response.data ?? [];
         },
-
-        enabled:
-            jobsQuery.isSuccess &&
-            jobs.length > 0,
 
         staleTime: 60 * 1000,
     });
