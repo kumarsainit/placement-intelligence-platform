@@ -1153,4 +1153,202 @@ class BackendApplicationTests {
         assertEquals("Users fetched successfully", controllerResponse.message());
         assertNotNull(controllerResponse.data());
     }
+
+    @Autowired
+    private com.placementintelligence.service.AdminPlacementGovernanceService adminPlacementGovernanceService;
+
+    @Autowired
+    private com.placementintelligence.controller.AdminCompanyController adminCompanyController;
+
+    @Autowired
+    private com.placementintelligence.controller.AdminJobController adminJobController;
+
+    @Test
+    void testAdminPlacementGovernanceWorkflow() {
+        // 1. Setup users
+        var superAdmin = userRepository.save(
+            com.placementintelligence.entity.User.builder()
+                .username("gov_superadmin")
+                .phoneNumber("9988113301")
+                .role(com.placementintelligence.common.enums.UserRole.SUPER_ADMIN)
+                .isActive(true)
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .build()
+        );
+
+        var admin = userRepository.save(
+            com.placementintelligence.entity.User.builder()
+                .username("gov_admin")
+                .phoneNumber("9988113302")
+                .role(com.placementintelligence.common.enums.UserRole.ADMIN)
+                .isActive(true)
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .build()
+        );
+
+        var student = userRepository.save(
+            com.placementintelligence.entity.User.builder()
+                .username("gov_student")
+                .phoneNumber("9988113303")
+                .role(com.placementintelligence.common.enums.UserRole.USER)
+                .isActive(true)
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .build()
+        );
+
+        var recruiterUser = userRepository.save(
+            com.placementintelligence.entity.User.builder()
+                .username("gov_recruiter")
+                .phoneNumber("9988113304")
+                .role(com.placementintelligence.common.enums.UserRole.RECRUITER)
+                .isActive(true)
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .build()
+        );
+
+        var inactiveAdmin = userRepository.save(
+            com.placementintelligence.entity.User.builder()
+                .username("gov_inactive_admin")
+                .phoneNumber("9988113305")
+                .role(com.placementintelligence.common.enums.UserRole.ADMIN)
+                .isActive(false)
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .build()
+        );
+
+        // 2. Setup Company & Recruiter Profile & Job
+        var company = companyRepository.save(
+            com.placementintelligence.entity.Company.builder()
+                .name("Gov Corp Inc")
+                .industry("Enterprise Software")
+                .location("Hyderabad")
+                .website("https://govcorp.example.com")
+                .isActive(true)
+                .build()
+        );
+
+        var recruiterProfile = recruiterProfileRepository.save(
+            com.placementintelligence.entity.RecruiterProfile.builder()
+                .user(recruiterUser)
+                .company(company)
+                .designation("Principal Recruiter")
+                .department("HR")
+                .build()
+        );
+
+        var job = jobRepository.save(
+            com.placementintelligence.entity.Job.builder()
+                .company(company)
+                .recruiter(recruiterProfile)
+                .title("Staff AI Engineer")
+                .description("Build agentic placement workflows")
+                .location("Hyderabad")
+                .employmentType(com.placementintelligence.common.enums.EmploymentType.FULL_TIME)
+                .experienceLevel(com.placementintelligence.common.enums.ExperienceLevel.SENIOR_LEVEL)
+                .openings(3)
+                .applicationDeadline(java.time.LocalDate.now().plusDays(30))
+                .status(com.placementintelligence.common.enums.JobStatus.OPEN)
+                .build()
+        );
+
+        // 3. Authorization checks: USER, RECRUITER, inactive ADMIN rejected (403)
+        assertThrows(org.springframework.security.access.AccessDeniedException.class, () ->
+            adminPlacementGovernanceService.getAllCompanies(student.getUsername())
+        );
+        assertThrows(org.springframework.security.access.AccessDeniedException.class, () ->
+            adminPlacementGovernanceService.getAllJobs(student.getUsername())
+        );
+
+        assertThrows(org.springframework.security.access.AccessDeniedException.class, () ->
+            adminPlacementGovernanceService.getAllCompanies(recruiterUser.getUsername())
+        );
+        assertThrows(org.springframework.security.access.AccessDeniedException.class, () ->
+            adminPlacementGovernanceService.getAllJobs(recruiterUser.getUsername())
+        );
+
+        assertThrows(org.springframework.security.access.AccessDeniedException.class, () ->
+            adminPlacementGovernanceService.getAllCompanies(inactiveAdmin.getUsername())
+        );
+        assertThrows(org.springframework.security.access.AccessDeniedException.class, () ->
+            adminPlacementGovernanceService.getAllJobs(inactiveAdmin.getUsername())
+        );
+
+        // 4. ADMIN & SUPER_ADMIN can retrieve all companies and jobs
+        var adminCompanies = adminPlacementGovernanceService.getAllCompanies(admin.getUsername());
+        assertNotNull(adminCompanies);
+        assertTrue(adminCompanies.stream().anyMatch(c -> c.id().equals(company.getId())));
+
+        var superAdminJobs = adminPlacementGovernanceService.getAllJobs(superAdmin.getUsername());
+        assertNotNull(superAdminJobs);
+        assertTrue(superAdminJobs.stream().anyMatch(j -> j.id().equals(job.getId())));
+
+        // 5. ADMIN can update company status
+        var deactivatedCompany = adminPlacementGovernanceService.updateCompanyStatus(
+            admin.getUsername(),
+            company.getId(),
+            new com.placementintelligence.dto.request.UpdateCompanyStatusRequest(false)
+        );
+        assertFalse(deactivatedCompany.isActive());
+
+        var reactivatedCompany = adminPlacementGovernanceService.updateCompanyStatus(
+            admin.getUsername(),
+            company.getId(),
+            new com.placementintelligence.dto.request.UpdateCompanyStatusRequest(true)
+        );
+        assertTrue(reactivatedCompany.isActive());
+
+        // 6. ADMIN can update job status
+        var closedJob = adminPlacementGovernanceService.updateJobStatus(
+            admin.getUsername(),
+            job.getId(),
+            new com.placementintelligence.dto.request.UpdateJobStatusRequest(com.placementintelligence.common.enums.JobStatus.CLOSED)
+        );
+        assertEquals(com.placementintelligence.common.enums.JobStatus.CLOSED, closedJob.status());
+
+        var reopenedJob = adminPlacementGovernanceService.updateJobStatus(
+            admin.getUsername(),
+            job.getId(),
+            new com.placementintelligence.dto.request.UpdateJobStatusRequest(com.placementintelligence.common.enums.JobStatus.OPEN)
+        );
+        assertEquals(com.placementintelligence.common.enums.JobStatus.OPEN, reopenedJob.status());
+
+        // 7. Non-existent company or job returns 404 (ResourceNotFoundException)
+        assertThrows(com.placementintelligence.exception.ResourceNotFoundException.class, () ->
+            adminPlacementGovernanceService.getCompanyById(admin.getUsername(), 999999L)
+        );
+        assertThrows(com.placementintelligence.exception.ResourceNotFoundException.class, () ->
+            adminPlacementGovernanceService.getJobById(admin.getUsername(), 999999L)
+        );
+
+        // 8. Controller endpoint verification
+        org.springframework.security.core.Authentication adminAuth =
+            new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                admin.getUsername(),
+                null,
+                java.util.List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_ADMIN"))
+            );
+
+        org.springframework.mock.web.MockHttpServletRequest mockCompanyRequest =
+            new org.springframework.mock.web.MockHttpServletRequest();
+        mockCompanyRequest.setRequestURI("/v1/admin/companies");
+
+        var companyControllerResponse = adminCompanyController.getAllCompanies(adminAuth, mockCompanyRequest);
+        assertNotNull(companyControllerResponse);
+        assertTrue(companyControllerResponse.success());
+        assertEquals("Admin companies fetched successfully", companyControllerResponse.message());
+
+        org.springframework.mock.web.MockHttpServletRequest mockJobRequest =
+            new org.springframework.mock.web.MockHttpServletRequest();
+        mockJobRequest.setRequestURI("/v1/admin/jobs");
+
+        var jobControllerResponse = adminJobController.getAllJobs(adminAuth, mockJobRequest);
+        assertNotNull(jobControllerResponse);
+        assertTrue(jobControllerResponse.success());
+        assertEquals("Admin jobs fetched successfully", jobControllerResponse.message());
+    }
 }

@@ -111,12 +111,24 @@ export default function AdminDashboardPage() {
                         </p>
                     </div>
 
-                    <div className="flex gap-2.5">
+                    <div className="flex flex-wrap gap-2.5">
                         <Link
-                            href="/jobs"
-                            className="rounded-xl border border-zinc-200 bg-white px-4 py-2 text-xs font-semibold text-zinc-700 shadow-sm transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+                            href="/admin/users"
+                            className="rounded-xl border border-zinc-200 bg-white px-3.5 py-2 text-xs font-semibold text-zinc-700 shadow-sm transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
                         >
-                            Explore Student Portal →
+                            Manage Users
+                        </Link>
+                        <Link
+                            href="/admin/companies"
+                            className="rounded-xl border border-zinc-200 bg-white px-3.5 py-2 text-xs font-semibold text-zinc-700 shadow-sm transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+                        >
+                            Manage Companies
+                        </Link>
+                        <Link
+                            href="/admin/jobs"
+                            className="rounded-xl border border-zinc-200 bg-white px-3.5 py-2 text-xs font-semibold text-zinc-700 shadow-sm transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+                        >
+                            Manage Jobs
                         </Link>
                     </div>
                 </header>

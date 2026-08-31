@@ -5,6 +5,8 @@ import com.placementintelligence.entity.Job;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
+import java.util.List;
+
 @Mapper(componentModel = "spring")
 public interface JobMapper {
 
@@ -29,4 +31,6 @@ public interface JobMapper {
         source = "recruiter.user.username"
     )
     JobResponse toResponse(Job job);
+
+    List<JobResponse> toResponseList(List<Job> jobs);
 }

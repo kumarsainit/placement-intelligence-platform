@@ -16,4 +16,6 @@ public interface CompanyRepository
     List<Company> findByIsActiveTrueOrderByNameAsc();
 
     long countByIsActiveTrue();
+
+    List<Company> findAllByOrderByCreatedAtDesc();
 }

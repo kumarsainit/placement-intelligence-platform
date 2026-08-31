@@ -26,4 +26,6 @@ public interface JobRepository
     );
 
     long countByStatus(com.placementintelligence.common.enums.JobStatus status);
+
+    List<Job> findAllByOrderByCreatedAtDesc();
 }
