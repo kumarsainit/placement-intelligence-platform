@@ -62,6 +62,10 @@ const adminNavigationItems = [
         label: "Dashboard",
         href: "/admin/dashboard",
     },
+    {
+        label: "Users",
+        href: "/admin/users",
+    },
 ];
 
 export function AppNavigation() {

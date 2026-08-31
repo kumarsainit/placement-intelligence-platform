@@ -20,6 +20,7 @@ const recruiterFooterLinks: FooterLink[] = [
 
 const adminFooterLinks: FooterLink[] = [
     { label: "Admin Dashboard", href: "/admin/dashboard" },
+    { label: "User Management", href: "/admin/users" },
 ];
 
 export function AppFooter() {

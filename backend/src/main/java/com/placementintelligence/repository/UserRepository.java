@@ -1,8 +1,10 @@
 package com.placementintelligence.repository;
 
+import com.placementintelligence.common.enums.UserRole;
 import com.placementintelligence.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long> {
@@ -15,7 +17,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     boolean existsByUsername(String username);
 
-    long countByRole(com.placementintelligence.common.enums.UserRole role);
+    long countByRole(UserRole role);
 
     long countByIsActiveTrue();
+
+    long countByRoleAndIsActiveTrue(UserRole role);
+
+    List<User> findAllByOrderByCreatedAtDesc();
 }

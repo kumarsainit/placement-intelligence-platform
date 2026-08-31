@@ -968,4 +968,189 @@ class BackendApplicationTests {
         assertNotNull(controllerResponse.data());
         assertEquals(adminOverview.totalStudents(), controllerResponse.data().totalStudents());
     }
+
+    @Autowired
+    private com.placementintelligence.service.AdminUserService adminUserService;
+
+    @Autowired
+    private com.placementintelligence.controller.AdminUserController adminUserController;
+
+    @Test
+    void testAdminUserManagementWorkflow() {
+        // 1. Setup users
+        var superAdmin = userRepository.save(
+            com.placementintelligence.entity.User.builder()
+                .username("mgmt_superadmin")
+                .phoneNumber("9988112201")
+                .role(com.placementintelligence.common.enums.UserRole.SUPER_ADMIN)
+                .isActive(true)
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .build()
+        );
+
+        var admin = userRepository.save(
+            com.placementintelligence.entity.User.builder()
+                .username("mgmt_admin")
+                .phoneNumber("9988112202")
+                .role(com.placementintelligence.common.enums.UserRole.ADMIN)
+                .isActive(true)
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .build()
+        );
+
+        var student = userRepository.save(
+            com.placementintelligence.entity.User.builder()
+                .username("mgmt_student")
+                .phoneNumber("9988112203")
+                .role(com.placementintelligence.common.enums.UserRole.USER)
+                .isActive(true)
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .build()
+        );
+
+        var recruiter = userRepository.save(
+            com.placementintelligence.entity.User.builder()
+                .username("mgmt_recruiter")
+                .phoneNumber("9988112204")
+                .role(com.placementintelligence.common.enums.UserRole.RECRUITER)
+                .isActive(true)
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .build()
+        );
+
+        var inactiveAdmin = userRepository.save(
+            com.placementintelligence.entity.User.builder()
+                .username("mgmt_inactive_admin")
+                .phoneNumber("9988112205")
+                .role(com.placementintelligence.common.enums.UserRole.ADMIN)
+                .isActive(false)
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .build()
+        );
+
+        // 2. Authorization checks: USER, RECRUITER, inactive ADMIN rejected (403)
+        assertThrows(org.springframework.security.access.AccessDeniedException.class, () ->
+            adminUserService.getAllUsers(student.getUsername())
+        );
+
+        assertThrows(org.springframework.security.access.AccessDeniedException.class, () ->
+            adminUserService.getAllUsers(recruiter.getUsername())
+        );
+
+        assertThrows(org.springframework.security.access.AccessDeniedException.class, () ->
+            adminUserService.getAllUsers(inactiveAdmin.getUsername())
+        );
+
+        // 3. ADMIN and SUPER_ADMIN can retrieve users list
+        var adminUserList = adminUserService.getAllUsers(admin.getUsername());
+        assertNotNull(adminUserList);
+        assertTrue(adminUserList.size() >= 4);
+
+        var superAdminUserList = adminUserService.getAllUsers(superAdmin.getUsername());
+        assertNotNull(superAdminUserList);
+        assertEquals(adminUserList.size(), superAdminUserList.size());
+
+        // 4. ADMIN can update student status (deactivate / activate)
+        var deactivatedStudent = adminUserService.updateUserStatus(
+            admin.getUsername(),
+            student.getId(),
+            new com.placementintelligence.dto.request.UpdateUserStatusRequest(false)
+        );
+        assertFalse(deactivatedStudent.isActive());
+
+        var reactivatedStudent = adminUserService.updateUserStatus(
+            admin.getUsername(),
+            student.getId(),
+            new com.placementintelligence.dto.request.UpdateUserStatusRequest(true)
+        );
+        assertTrue(reactivatedStudent.isActive());
+
+        // 5. ADMIN can update student role to RECRUITER
+        var updatedRoleStudent = adminUserService.updateUserRole(
+            admin.getUsername(),
+            student.getId(),
+            new com.placementintelligence.dto.request.UpdateUserRoleRequest(com.placementintelligence.common.enums.UserRole.RECRUITER)
+        );
+        assertEquals(com.placementintelligence.common.enums.UserRole.RECRUITER, updatedRoleStudent.role());
+
+        // 6. ADMIN cannot promote user to SUPER_ADMIN or ADMIN
+        assertThrows(org.springframework.security.access.AccessDeniedException.class, () ->
+            adminUserService.updateUserRole(
+                admin.getUsername(),
+                student.getId(),
+                new com.placementintelligence.dto.request.UpdateUserRoleRequest(com.placementintelligence.common.enums.UserRole.SUPER_ADMIN)
+            )
+        );
+
+        assertThrows(org.springframework.security.access.AccessDeniedException.class, () ->
+            adminUserService.updateUserRole(
+                admin.getUsername(),
+                student.getId(),
+                new com.placementintelligence.dto.request.UpdateUserRoleRequest(com.placementintelligence.common.enums.UserRole.ADMIN)
+            )
+        );
+
+        // 7. ADMIN cannot modify own role or deactivate own account
+        assertThrows(org.springframework.security.access.AccessDeniedException.class, () ->
+            adminUserService.updateUserRole(
+                admin.getUsername(),
+                admin.getId(),
+                new com.placementintelligence.dto.request.UpdateUserRoleRequest(com.placementintelligence.common.enums.UserRole.SUPER_ADMIN)
+            )
+        );
+
+        assertThrows(org.springframework.security.access.AccessDeniedException.class, () ->
+            adminUserService.updateUserStatus(
+                admin.getUsername(),
+                admin.getId(),
+                new com.placementintelligence.dto.request.UpdateUserStatusRequest(false)
+            )
+        );
+
+        // 8. ADMIN cannot modify another ADMIN or SUPER_ADMIN
+        assertThrows(org.springframework.security.access.AccessDeniedException.class, () ->
+            adminUserService.updateUserStatus(
+                admin.getUsername(),
+                superAdmin.getId(),
+                new com.placementintelligence.dto.request.UpdateUserStatusRequest(false)
+            )
+        );
+
+        // 9. SUPER_ADMIN protection (cannot demote/deactivate final active SUPER_ADMIN)
+        assertThrows(org.springframework.security.access.AccessDeniedException.class, () ->
+            adminUserService.updateUserRole(
+                superAdmin.getUsername(),
+                superAdmin.getId(),
+                new com.placementintelligence.dto.request.UpdateUserRoleRequest(com.placementintelligence.common.enums.UserRole.USER)
+            )
+        );
+
+        // 10. Invalid target user returns 404 (ResourceNotFoundException)
+        assertThrows(com.placementintelligence.exception.ResourceNotFoundException.class, () ->
+            adminUserService.getUserById(admin.getUsername(), 999999L)
+        );
+
+        // 11. Controller endpoint verification
+        org.springframework.security.core.Authentication adminAuth =
+            new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                admin.getUsername(),
+                null,
+                java.util.List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_ADMIN"))
+            );
+
+        org.springframework.mock.web.MockHttpServletRequest mockRequest =
+            new org.springframework.mock.web.MockHttpServletRequest();
+        mockRequest.setRequestURI("/v1/admin/users");
+
+        var controllerResponse = adminUserController.getAllUsers(adminAuth, mockRequest);
+        assertNotNull(controllerResponse);
+        assertTrue(controllerResponse.success());
+        assertEquals("Users fetched successfully", controllerResponse.message());
+        assertNotNull(controllerResponse.data());
+    }
 }
