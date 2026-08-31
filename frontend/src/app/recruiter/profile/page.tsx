@@ -52,7 +52,7 @@ export default function RecruiterProfilePage() {
                 <div className="mx-auto max-w-3xl">
                     <header className="mb-8">
                         <Link
-                            href="/dashboard"
+                            href="/recruiter/dashboard"
                             className="text-sm font-medium hover:underline"
                         >
                             ← Dashboard
