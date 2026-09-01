@@ -3,6 +3,7 @@
 import React, { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { useQueryClient } from "@tanstack/react-query";
 import {
     GraduationCap,
     Building2,
@@ -24,6 +25,7 @@ type AuthRoleSelection = "student" | "recruiter" | "admin" | null;
 
 function AuthContent() {
     const router = useRouter();
+    const queryClient = useQueryClient();
     const searchParams = useSearchParams();
     const roleParam = searchParams.get("role");
 
@@ -46,10 +48,13 @@ function AuthContent() {
         try {
             setIsRedirecting(true);
 
+            // Fetch the authoritative current user role from the backend
             const response = await getCurrentUser();
             const role = response.data.role;
 
             setRole(role);
+            queryClient.setQueryData(["current-user"], response);
+            queryClient.invalidateQueries({ queryKey: ["current-user"] });
 
             if (role === "ADMIN" || role === "SUPER_ADMIN") {
                 router.replace("/admin/dashboard");
@@ -230,6 +235,13 @@ function AuthContent() {
             ? "Enter your mobile phone number to sign in or access your hiring pipeline."
             : "Authorized administrators: enter your registered mobile phone number.";
 
+    const requestedRole =
+        selectedRole === "recruiter"
+            ? "RECRUITER"
+            : selectedRole === "student"
+            ? "USER"
+            : undefined;
+
     return (
         <Auth08
             title={phoneNumber ? "Verify One-Time Password" : roleTitle}
@@ -247,6 +259,7 @@ function AuthContent() {
             ) : phoneNumber ? (
                 <OtpVerificationForm
                     phoneNumber={phoneNumber}
+                    role={requestedRole}
                     onVerified={handleVerified}
                     onBack={() => setPhoneNumber(null)}
                 />

@@ -2,19 +2,19 @@
 
 import React from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { LogOut, Building2, ShieldCheck, GraduationCap } from "lucide-react";
 import { CamPlaceLogo } from "@/components/shared/camplace-logo";
 import { useAuthStore } from "@/stores/auth-store";
+import { useLogout } from "@/features/auth/hooks/use-logout";
 
 export function AppHeader() {
-    const router = useRouter();
     const pathname = usePathname();
+    const { logout } = useLogout();
 
     const username = useAuthStore((state) => state.username);
     const role = useAuthStore((state) => state.role);
     const accessToken = useAuthStore((state) => state.accessToken);
-    const clearSession = useAuthStore((state) => state.clearSession);
 
     const isRecruiterRoute =
         pathname === "/recruiter" || pathname.startsWith("/recruiter/");
@@ -27,11 +27,6 @@ export function AppHeader() {
         : isRecruiterRoute
         ? "/recruiter/dashboard"
         : "/dashboard";
-
-    const handleLogout = () => {
-        clearSession();
-        router.replace("/auth");
-    };
 
     if (!accessToken) {
         return null;
@@ -83,7 +78,7 @@ export function AppHeader() {
 
                     <button
                         type="button"
-                        onClick={handleLogout}
+                        onClick={() => logout("/auth")}
                         className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-2xs transition hover:bg-slate-50 hover:text-slate-950 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
                     >
                         <LogOut className="size-3.5 text-slate-500" />

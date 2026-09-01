@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import type { UserRole } from "@/features/auth/api/user-api";
 import { useAuthStore } from "@/stores/auth-store";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
+import { useLogout } from "@/features/auth/hooks/use-logout";
 
 interface AuthGuardProps {
     children: ReactNode;
@@ -18,6 +19,7 @@ export function AuthGuard({
                               allowedRole,
                           }: AuthGuardProps) {
     const router = useRouter();
+    const { logout } = useLogout();
 
     const accessToken = useAuthStore(
         (state) => state.accessToken,
@@ -29,10 +31,6 @@ export function AuthGuard({
 
     const setRole = useAuthStore(
         (state) => state.setRole,
-    );
-
-    const clearSession = useAuthStore(
-        (state) => state.clearSession,
     );
 
     const currentUserQuery = useCurrentUser();
@@ -72,15 +70,13 @@ export function AuthGuard({
             accessToken &&
             currentUserQuery.isError
         ) {
-            clearSession();
-            router.replace("/auth");
+            logout("/auth");
         }
     }, [
         hasHydrated,
         accessToken,
         currentUserQuery.isError,
-        clearSession,
-        router,
+        logout,
     ]);
 
     /*

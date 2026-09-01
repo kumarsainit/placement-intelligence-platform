@@ -10,15 +10,18 @@ import {
     verifyOtpSchema,
     type VerifyOtpForm,
 } from "@/features/auth/schemas/auth-schema";
+import type { UserRole } from "@/features/auth/api/user-api";
 
 interface OtpVerificationFormProps {
     phoneNumber: string;
+    role?: UserRole;
     onVerified: () => void;
     onBack: () => void;
 }
 
 export function OtpVerificationForm({
     phoneNumber,
+    role,
     onVerified,
     onBack,
 }: OtpVerificationFormProps) {
@@ -50,7 +53,11 @@ export function OtpVerificationForm({
 
     const onSubmit = async (data: VerifyOtpForm) => {
         try {
-            await verifyOtpMutation.mutateAsync(data);
+            await verifyOtpMutation.mutateAsync({
+                phoneNumber: data.phoneNumber,
+                otp: data.otp,
+                role,
+            });
             onVerified();
         } catch {
             // API error is exposed through verifyOtpMutation.error.

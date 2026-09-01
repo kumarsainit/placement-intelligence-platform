@@ -124,11 +124,15 @@ public class AuthServiceImpl implements AuthService {
         User user = userRepository
             .findByPhoneNumber(request.phoneNumber())
             .orElseGet(() -> {
+                UserRole assignedRole = UserRole.USER;
+                if (request.role() == UserRole.RECRUITER) {
+                    assignedRole = UserRole.RECRUITER;
+                }
 
                 User newUser = User.builder()
                     .phoneNumber(request.phoneNumber())
                     .username(generateUsername(request.phoneNumber()))
-                    .role(UserRole.USER)
+                    .role(assignedRole)
                     .isActive(true)
                     .createdAt(Instant.now())
                     .updatedAt(Instant.now())

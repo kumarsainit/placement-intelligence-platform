@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import {
     Menu,
     X,
@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { CamPlaceLogo } from "@/components/shared/camplace-logo";
 import { useAuthStore } from "@/stores/auth-store";
+import { useLogout } from "@/features/auth/hooks/use-logout";
 import { cn } from "@/lib/utils";
 
 export interface NavigationItem {
@@ -25,17 +26,11 @@ export interface NavigationItem {
 export function Navigation5() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const pathname = usePathname();
-    const router = useRouter();
+    const { logout } = useLogout();
 
     const accessToken = useAuthStore((state) => state.accessToken);
     const username = useAuthStore((state) => state.username);
     const role = useAuthStore((state) => state.role);
-    const clearSession = useAuthStore((state) => state.clearSession);
-
-    const handleLogout = () => {
-        clearSession();
-        router.replace("/auth");
-    };
 
     // Public / Guest Links
     const publicLinks: NavigationItem[] = [
@@ -163,7 +158,7 @@ export function Navigation5() {
                             )}
                             <button
                                 type="button"
-                                onClick={handleLogout}
+                                onClick={() => logout("/auth")}
                                 className="inline-flex items-center gap-1.5 rounded-xl border border-slate-800 bg-slate-900 px-3 py-1.5 text-xs font-semibold text-slate-300 transition hover:bg-slate-800 hover:text-white"
                             >
                                 <LogOut className="size-3.5" />
@@ -232,7 +227,7 @@ export function Navigation5() {
                                 type="button"
                                 onClick={() => {
                                     setMobileMenuOpen(false);
-                                    handleLogout();
+                                    logout("/auth");
                                 }}
                                 className="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 py-2.5 text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white"
                             >

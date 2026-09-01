@@ -157,6 +157,88 @@ class BackendApplicationTests {
         assertDoesNotThrow(() -> noOpDelivery.deliverOtp(phone, "123456", 300L));
     }
 
+    @Test
+    void testRoleBasedOtpRegistrationAndAuthenticationFlow() {
+        // 1. New user registering as RECRUITER
+        String recruiterPhone = "9555500001";
+        String otp1 = "654321";
+        otpRepository.save(OtpVerification.builder()
+            .phoneNumber(recruiterPhone)
+            .otp(passwordEncoder.encode(otp1))
+            .attemptCount(0)
+            .verified(false)
+            .createdAt(Instant.now())
+            .updatedAt(Instant.now())
+            .expiresAt(Instant.now().plusSeconds(300))
+            .build());
+
+        LoginResponse recruiterLogin = authService.verifyOtp(
+            new VerifyOtpRequest(recruiterPhone, otp1, com.placementintelligence.common.enums.UserRole.RECRUITER)
+        );
+        assertNotNull(recruiterLogin);
+        var recruiterUser = userRepository.findByUsername(recruiterLogin.username()).orElseThrow();
+        assertEquals(com.placementintelligence.common.enums.UserRole.RECRUITER, recruiterUser.getRole());
+
+        // 2. New user registering as STUDENT / USER
+        String studentPhone = "9555500002";
+        String otp2 = "654321";
+        otpRepository.save(OtpVerification.builder()
+            .phoneNumber(studentPhone)
+            .otp(passwordEncoder.encode(otp2))
+            .attemptCount(0)
+            .verified(false)
+            .createdAt(Instant.now())
+            .updatedAt(Instant.now())
+            .expiresAt(Instant.now().plusSeconds(300))
+            .build());
+
+        LoginResponse studentLogin = authService.verifyOtp(
+            new VerifyOtpRequest(studentPhone, otp2, com.placementintelligence.common.enums.UserRole.USER)
+        );
+        assertNotNull(studentLogin);
+        var studentUser = userRepository.findByUsername(studentLogin.username()).orElseThrow();
+        assertEquals(com.placementintelligence.common.enums.UserRole.USER, studentUser.getRole());
+
+        // 3. Existing Recruiter logs in without specifying role -> preserves RECRUITER
+        String otp3 = "112233";
+        otpRepository.save(OtpVerification.builder()
+            .phoneNumber(recruiterPhone)
+            .otp(passwordEncoder.encode(otp3))
+            .attemptCount(0)
+            .verified(false)
+            .createdAt(Instant.now())
+            .updatedAt(Instant.now())
+            .expiresAt(Instant.now().plusSeconds(300))
+            .build());
+
+        LoginResponse recruiterReLogin = authService.verifyOtp(
+            new VerifyOtpRequest(recruiterPhone, otp3, null)
+        );
+        assertNotNull(recruiterReLogin);
+        var recruiterUserAfter = userRepository.findByUsername(recruiterReLogin.username()).orElseThrow();
+        assertEquals(com.placementintelligence.common.enums.UserRole.RECRUITER, recruiterUserAfter.getRole());
+
+        // 4. Public registration attempting ADMIN escalation -> safely defaults to USER
+        String maliciousPhone = "9555500003";
+        String otp4 = "999888";
+        otpRepository.save(OtpVerification.builder()
+            .phoneNumber(maliciousPhone)
+            .otp(passwordEncoder.encode(otp4))
+            .attemptCount(0)
+            .verified(false)
+            .createdAt(Instant.now())
+            .updatedAt(Instant.now())
+            .expiresAt(Instant.now().plusSeconds(300))
+            .build());
+
+        LoginResponse adminAttempt = authService.verifyOtp(
+            new VerifyOtpRequest(maliciousPhone, otp4, com.placementintelligence.common.enums.UserRole.ADMIN)
+        );
+        assertNotNull(adminAttempt);
+        var adminAttemptUser = userRepository.findByUsername(adminAttempt.username()).orElseThrow();
+        assertEquals(com.placementintelligence.common.enums.UserRole.USER, adminAttemptUser.getRole());
+    }
+
     @Autowired
     private com.placementintelligence.controller.UserController userController;
 
